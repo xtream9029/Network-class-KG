@@ -1,0 +1,578 @@
+<공통>
+en
+conf t
+no ip domain loo
+enable secret ccna321
+lin con 0
+ exec-time 0 0
+ logging syn
+ password cisco123
+ login
+exit
+
+<Seoul>
+ho Seoul
+int fa 0/1
+ desc ##Seoul_HQ_Office1##
+ ip add 211.100.10.94 255.255.255.224
+ no shut
+!
+int fa 0/0
+ desc ##Seoul_HQ_Office2##
+ ip add 211.100.10.126 255.255.255.224
+ no shut
+!
+int s 0/1
+ desc ##Daegu_WAN_Connection##
+ ip add 1.1.100.6 255.255.255.252
+ clock rate 500000
+ no shut
+!
+int s 0/0
+ desc ##Busan_WAN_Connection##
+ ip add 1.1.100.2 255.255.255.252
+ clock rate 64000
+ no shut
+!
+
+<Busan>
+ho Busan
+int fa 0/0
+ desc ##Busan_Branch_Office##
+ ip add 100.1.1.254 255.255.255.0
+ no shut
+!
+int s 0/1
+ desc ##Daegu_WAN_Connection##
+ ip add 1.1.100.10 255.255.255.252
+ clock rate 500000
+ no shut
+!
+int s 0/0
+ desc ##Seoul_WAN_Connection##
+ ip add 1.1.100.1 255.255.255.252
+ no shut
+!
+
+<Daegu>
+ho Daegu
+int fa 0/0
+ desc ##Daegu_Branch_Office##
+ ip add 150.200.1.254 255.255.255.128
+ no shut
+!
+int s 0/0
+ desc ##Busan_WAN_Connection##
+ ip add 1.1.100.9 255.255.255.252
+ no shut
+!
+int s 0/1
+ desc ##Seoul_WAN_Connection##
+ ip add 1.1.100.5 255.255.255.252
+ no shut
+!
+
+- verify -
+show running-config
+show ip interface brief
+show ip route
+인접 구간 Ping test
+
+====================================================
+** Static Route Configuration **
+
+<Seoul>
+conf t
+ip route 100.1.1.0 255.255.255.0 serial 0/0
+ip route 150.200.1.128 255.255.255.128 serial 0/1
+
+<Busan>
+conf t
+ip route 211.100.10.64 255.255.255.224 serial 0/0
+ip route 211.100.10.96 255.255.255.224 serial 0/0
+ip route 150.200.1.128 255.255.255.128 serial 0/1
+
+<Daegu>
+conf t
+ip route 211.100.10.64 255.255.255.224 serial 0/1
+ip route 211.100.10.96 255.255.255.224 serial 0/1
+ip route 100.1.1.0 255.255.255.0 serial 0/0
+
+** 경로 우회 설정 **
+
+<Seoul>
+conf t
+int s 0/0
+ shutdown
+!
+no ip route 100.1.1.0 255.255.255.0 serial 0/0
+
+ip route 100.1.1.0 255.255.255.0 serial 0/1
+
+<Busan>
+conf t
+no ip route 211.100.10.64 255.255.255.224 serial 0/0
+no ip route 211.100.10.96 255.255.255.224 serial 0/0
+
+ip route 211.100.10.64 255.255.255.224 serial 0/1
+ip route 211.100.10.96 255.255.255.224 serial 0/1
+
+
+** Static Route 삭제 **
+
+<Seoul>
+conf t
+int s 0/0
+ no shut
+!
+no ip route 100.1.1.0 255.255.255.0 Serial0/0 
+no ip route 150.200.1.128 255.255.255.128 Serial0/1 
+no ip route 100.1.1.0 255.255.255.0 Serial0/1 
+
+<Busan>
+conf t
+no ip route 150.200.1.128 255.255.255.128 Serial0/1 
+no ip route 211.100.10.64 255.255.255.224 Serial0/1 
+no ip route 211.100.10.96 255.255.255.224 Serial0/1 
+
+<Daegu>
+conf t
+no ip route 211.100.10.64 255.255.255.224 Serial0/1 
+no ip route 211.100.10.96 255.255.255.224 Serial0/1 
+no ip route 100.1.1.0 255.255.255.0 Serial0/0
+
+** verify *
+show running-config
+show ip route
+
+=====================================================================
+## RIP(Routing Information Protocol) ##
+
+- 1970년대 Xerox의 XNS(Xerox Network System)에서 사용하기 위한 목적의
+  Routing Protocol로 'GWINFO'를 만들었다. 그 후 1980년대 TCP/IP에서 
+  사용하기 위한 목적으로 'GWINFO'을 'IP RIP'으로 발전시켰다. 
+
+- RIP의 version은 다음과 같다.
+  1) RIPv1 -> Classful / Broadcast(255.255.255.255) 방식으로 정보 교환.
+  2) RIPv2 -> Classless / Multicast(224.0.0.9) 방식으로 정보 교환 /
+              TAG / Authentication(인증) / Manual-Summry(수동 축약)
+
+- RIPv1과 RIPv2는 호환성이 없다!!
+
+- RIP은 표준 Routing Protocol로 모든 벤더의 Router에서 구성이 가능.(호환성)
+  Link-State 계열의 Routing Protocol(ex.OSPF) 보다 가볍게 동작하기 
+  때문에 많은 리소스를 요구하지 않고 명령어도 간단하기 때문에 상대적으로 복잡한
+  지식을 많이 요구하지 않는다.
+   => 작은 규모의 네트워크에 가볍게 사용하는 것은 가능하다.
+
+---------------------------------------------------------------------
+** network 명령어 의미 **
+
+- RIP/EIGPR/OSPF 모두 공통된 의미를 갖는 명령어.
+
+1. network 명령어로 지정된 IP 주소를 갖는 Interface가 있다면, 해당 Interface의   
+   [Nework ID]를 광고해라.
+
+2. network 명령어로 지정된 IP 주소를 갖는 Interface가 있다면, 해당 Interface와
+   연결된 인접 Router와 RIP 정보를 교환하시오.
+
+----------------------------------------------------------------------
+** RIP Configuration **
+
+<Seoul>
+conf t
+router rip
+ version 2
+ no auto-summary
+ network 211.100.10.94
+ network 211.100.10.126
+ network 1.1.100.2
+ network 1.1.100.6
+!
+ => Router가 RIP 명령어를 입력받을 때 Classful 형태로 변경하여 입력을 받는다.
+    하지만 실제 광고되는 정보는 Classless 정보를 광고한다.
+    ( version 2 / no auto-summary )
+
+<Busan>
+conf t
+router rip
+ version 2
+ no auto-summary
+ network 100.1.1.254
+ network 1.1.100.1
+ network 1.1.100.10
+!
+
+<Daegu>
+conf t
+router rip
+ version 2
+ no auto-summary
+ network 150.200.0.0
+ network 1.0.0.0
+!
+
+- verify -
+show running-config
+show ip route
+show ip protocols
+전체구간 ping test
+debug ip rip
+ => [undebug all] 종료
+
+---------------------------------------------------------------------
+** RIP Configuration 삭제 **
+
+<Seoul/Busan/Daegu>
+conf t
+no router rip
+
+==============================================================================
+## EIGRP Configuration ##
+
+- EIGRP 설정 시 사용되는 AS번호는 BGP의 AS번호와 아무런 관련이 없다!!(이름만 동일할 뿐이다.)
+  BGP AS번호는 공식적인 경로를 통해서 할당받아야 사용이 가능하다.(국내의 경우 KISA)
+  EIGRP AS번호의 경우 관리자가 어떠한 번호를 사용해도 아무런 문제가 없다.
+
+- EIGRP AS의 경우 정보의 교환 범위를 제한하는 목적으로 사용이 가능하다. EIGRP가 설정된
+  Router들은 인접 Router와 AS번호가 동일한 경우에만 EIGRP Neighbor 관계를 형성하고 
+  정보를 교환하는 것이 가능하다.
+
+<Seoul>
+conf t
+router eigrp 1
+ no auto-summary
+ network 211.100.10.94
+ network 211.100.10.126
+ network 1.1.100.2
+ network 1.1.100.6
+!
+ => RIP과 동일하게 Classful로 변경되어 입력된다.
+
+<Busan>
+conf t
+router eigrp 1
+ no auto-summary
+ network 100.0.0.0
+ network 1.0.0.0
+!
+
+<Daegu>
+conf t
+router eigrp 1
+ no auto-summary
+ network 150.200.0.0
+ network 1.0.0.0
+!
+
+- verify -
+show running-config
+show ip eigrp neighbor => EIGRP Neighbor Table 확인.
+show ip eigrp topology => EIGRP Topology Table 확인.
+show ip route          => Routing Table 확인.
+전체구간 ping test
+
+-------------------------------------------------------------
+** Busan Router에 Loopback 인터페이스 추가 설정 **
+
+<Busan>
+conf t
+interface loopback 0
+ ip address 172.16.4.1 255.255.255.0
+!
+interface loopback 1
+ ip address 172.16.5.1 255.255.255.0
+!
+interface loopback 2
+ ip address 172.16.6.1 255.255.255.0
+!
+int lo 3
+ ip add 172.16.7.1 255.255.255.0
+!
+router eigrp 1
+ network 172.16.4.1
+ network 172.16.5.1
+!
+ => <Busan> 네트워크 관리자는 [172.16.4.0/24]과 [172.16.5.0/24]대역만
+    광고하기를 원하는 경우이다. 하지만 위와 같이 명령어를 입력할 경우 Classful로
+    변경되어 입력되기 때문에 관리자의 의도와 관계없이 모든 Loopback 인터페이스를
+    EIGRP에 포함시켜 Seoul과 Daegu에 광고하게 된다.
+     -> 이러한 문제를 해결하기 위해 'Wildcard Mask'를 사용해야 한다!!
+
+-------------------------------------------------------------------------------
+** Wildcard Mask **
+
+- 특정 네트워크 범위를 지정할 수 있는 mask를 의미한다. EIGRP / OSPF / Acess-list 등에서
+  사용된다. (RIP : 지원 x / EIGRP : 옵션 / OSPF : 필수)
+
+- Wildcard mask 표현방식은 Subnet mask의 반대이다. 고정된 bit에 숫자 '0'을 채우고, 변동
+  가능한 bit에 숫자 '1'을 채운다.
+
+ /24 => 11111111.11111111.11111111.00000000 (255.255.255.0)
+        00000000.00000000.00000000.11111111 (0.0.0.255)
+
+ /30 => 11111111.11111111.11111111.11111100 (255.255.255.252)
+        00000000.00000000.00000000.00000011 (0.0.0.3)
+
+<Busan>
+conf t
+router eigrp 1
+ no network 172.16.0.0
+ network 172.16.4.0 0.0.0.255
+ network 172.16.5.0 0.0.0.255
+!
+	- or -
+
+router eigrp 1
+ no network 172.16.0.0
+ network 172.16.4.1 0.0.0.0
+ network 172.16.5.1 0.0.0.0
+!
+----------------------------------------------------------------------------
+** EIGRP Bandwidth Configuration **
+
+- Router의 경우 [show interface <인터페이스 이름>] 명령어를 사용하면 해당 Interface의
+  Bandwidth와 Delay 값 등 상세 정보를 확인할 수 있다.
+
+  해당 Bandwidth와 Delay는 실제 속도와 관계 없는 Router 기본값을 갖고 있다. 결과적으로
+  관리자가 해당 Interface의 Bandwidth를 실제 속도에 맞춰 변경하지 않는다면 EIGRP와
+  OSPF의 경우 Metric 계산시 실제 속도를 반영하지 못하기 때문에 정확한 Best Path를
+  선택하는 것이 불가능하다.
+
+  이러한 문제를 해결하기 위해서는 관리자가 실제 Link 속도와 유사한 Bandwidth 값을 Interface에
+  입력해야 한다.
+  (Interface에 입력한 Bandwidth/Delay 등은 Metric 계산에 사용되는 요소이다. 해당 값을
+   변경한다고 실제 속도에 영향을 주지 않는다.)
+
+<Seoul/Busan>
+conf t
+int s 0/0
+ bandwidth 64
+!
+int s 0/1
+ bandwidth 512
+!
+
+<Daegu>
+conf t
+int s 0/0
+ bandwidth 512
+!
+int s 0/1
+ bandwidth 64
+!
+
+- verify -
+sh int s 0/x
+sh ip route
+
+===========================================================================
+## EIGRP 설정 삭제 후 OSPF로 변경 ##
+
+<Seoul/Busan/Daegu>
+conf t
+no router eigrp 1
+
+- OSPF를 설정하는 경우 'Process-ID'를 입력해야 한다. EIGRP의 AS번호와 다르게 인접한
+  Router가 서로 다른 'Process-ID'로 설정된 경우에도 OSPF Neighbor 관계를 형성하고 
+  정보를 교환하는 것이 가능하다.
+  (하나의 라우터에 다수의 OSPF를 구성하는 경우 각 OSPF Process를 구분하기 위한 목적이다.) 
+ 
+- OSPF는 Link-State 계열로 각 Router들마다 고유한 식별자인 'Router-ID'를 갖는다.
+  'Router-ID'는 IPv4 주소 형태를 갖는다. 모양만 IPv4 주소이고 실제 주소와 아무런 관련이 없다!
+  (각 Router는 서로 다른 Router-ID를 사용해야 한다. 만약 인접한 Router들이 동일한 
+   Roter-ID를 사용하는 경우 OSPF Neighbor 관계를 형성할 수 없다.)
+
+- Router-ID는 명령어를 사용하여 수동으로 설정하는 것이 가능하다. 만약 관리자가 명령어를 입력하지
+  않은 경우에는 Router가 다음 조건들을 비교하여 자동으로 Router-ID를 결정한다.
+   1) 가상 Interface의 IP 주소 중 숫자가 가장 큰 IP 주소를 선택.
+   2) 가상 Interface가 없는 경우 물리적 Interface의 IP 주소 중 숫자가 가장 큰 IP 주소 선택.
+
+<Seoul>
+conf t
+router ospf 1(process id eigrp의 as번호와는 완전히 다름 동일하거나 다르더라도 상관없음)
+ router-id 1.1.1.1 (형식만 ip일뿐 실제 ip와는 전혀 다름)
+ network 211.100.10.94 0.0.0.0 
+
+ 1.1.1.1 => 1.1.1.0 0.0.0.255 
+            1.1.1.0 0.0.0.127
+            1.1.1.0 0.0.0.63
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

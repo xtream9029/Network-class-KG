@@ -1,0 +1,19 @@
+mkdir /backup/	
+cp /etc/inittab /backup/
+cp /etc/login.defs /backup/
+cp /boot/grub2/grub.cfg /backup/
+
+cd /home/itbank/
+cp /backup/grub.cfg /home/itbank/grub.cfg
+cp /backup/inittab ./
+cp /backup/login.defs ./login
+
+mkdir -p /home/test/c
+cp ./grub.cfg /home/test/c/
+cp /home/itbank/inittab ../test/c/
+cp ./login ../test/c/login.defs
+
+mkdir /home/test/c/d/
+cp /backup/grub.cfg /home/test/c/d/grub.cfg
+cp ../../backup/inittab /home/test/c/d/
+cp ../../backup/login.defs ../test/c/d/login

@@ -1,0 +1,139 @@
+## Network 정의 ##
+
+- 서로 다른 End Device를 Intermediary Device와 Media(연결매체)로
+  연결하여 정보나 자원을 공유하는 행동이나 망을 의미한다.
+
+----------------------------------------------------------------
+## Network 구성 요소 ##
+
+[1. Device(장치)]
+ 1) End Device(종단 장치)
+     => PC / Server / 스마트 폰 / 태블릿 / 프린터 / IP Phone..
+ 2) Intermediary Device(중계 장치)
+     => Router / Switch / 무선AP / Hub(사용 X) ..
+
+[2. Media(연결 매체)]
+ 1) Wired(유선) - Cable 사용.
+     => UTP Cable(Straight-through / Crossover)
+     => Fiber Optic(광케이블)
+ 2) Wireless(무선) - Cable 사용 X.
+
+[3. Message(데이터)]
+ => binary(0,1) data
+
+[4. Protocol(규칙)]
+ => 통신을 하기 위한 모든 물리적/논리적 규칙들의 집합을 의미한다.
+ => Protocol은 언어에 비유할 수 있다.
+    독립된 Network들은 각각 다른 Protocol을 사용하는 것도 가능하다.
+    하지만 서로 연결된 Network들은 공통된 Protocol을 사용해야만 통신이
+    가능하다.
+ => 인터넷 표준 프로토콜 : TCP/IP
+ => TCP/IP를 사용하는 모든 장치들은 고유한 IP 주소가 할당되어 있어야 통신이
+    가능하다.
+
+=====================================================================
+## TCP/IP와 OSI 7 Layer Model ##
+
+[1. TCP/IP Model(= DoD(미 국방성) Model)]
+ => 오늘날 실제 사용하는 표준 프로토콜에 대한 모델이다.
+ => 미 국방성 관련 프로젝트에 의해 발전되었다.
+
+[2. OSI 7 Layer Model]
+ => ISO(국제표준화기구)에서 internetworking에 사용하기 위한 목적의 
+    프로토콜로 연구를 진행하였다. 하지만 연구 과정이 많이 지연되었고
+    결과적으로 TCP/IP가 인터넷 표준 프로토콜로 자리를 잡았다.
+ => OSI는 실제 프로토콜로 구현된 경우는 많지 않고, 주로 연구용/교육용/
+    개발을 위한 Reference(참조) Model로 활용되고 있다.
+
+
+** OSI 7 Layer Model **
+
+<상위 계층 : Application>
+ 7계층 : Application
+ 6계층 : Presentation 
+ 5계층 : Session
+
+<하위 계층 : Data Flow>
+ 4계층 : Transport
+ 3계층 : Network
+ 2계층 : Data-Flow
+ 1계층 : Physical
+
+======================================================================
+## L4 : Transport Layer ##
+
+1. L4 역할
+ => Port 번호를 사용하여 서비스를 식별하는 역할을 수행.
+ => TCP의 경우 segmentation(단편화)/error control(오류제어)/flow control(흐름제어)
+
+2. L4 Protocol
+ => TCP(Transmission Control Protocol) : 연결지향성 / 신뢰성
+ => UDP(User Datagram Protocol)        : 비연결지향성 / 비신뢰성
+
+3. L4 정보 : Port 번호(서비스 식별자) - 범위 : 0 ~ 65,535
+            1) Well-known : 0 ~ 1,023
+	2) Registered : 1,024 ~ 49,151
+            3)  Dynamic   : 49,152 ~ 65,535
+
+4. L4 PDU(Protocol Data Unit)
+    1) TCP헤더 + Data  :  Segment
+    2) UDP헤더 + Data  :  Datagram  
+
+5. L4 Device : 라우터,스위치
+
+
+
+======================================================================
+## L3 : Transport Layer ##
+
+1. L3역할
+ => 'logical address(논리적 주소)'를 사용하여 서로 다른 network 사이에서 packet전송을 담당
+ => L3 Device(ex.라우터)는 수신한 packet의 목적지 ip주소와 자신의 주소록(routing table)을 비교하여
+best path(최적경로)로 전송하는 역할을 수행.(routing)
+
+2. L3 Protocol
+=> IPv4/IPv6,IPX,Appletalk...
+
+3. L3 정보 : logical address(논리적 주소)
+ex)-IPv4 프로토콜을 사용하는 경우 IPv4 주소를 사용.(중요)
+    -IPv6 프로토콜을 사용하는 경우 IPv6주소를 사용.
+    -IPX 프로토콜을 사용하는 경우 IPX 주소를 사용.
+       
+4. L3 PDU(Protocol Data Unit)
+ => L3헤더+L4헤더+Data :packet(=ip datagram)
+
+5. L3 Device : 라우터,스위치
+
+
+=================================
+##ip(internet protocol) address ##
+
+-인터넷 표준 프로토콜인 tcp/ip에서 사용되는 logical address(논리적 주소)이다.
+tcp/ip를 사용하는 모든 장치들은 반드시 ip주소가 할당되어있다.
+
+
+-ip 주소는 2진수로 구성되어 있다.
+
+1)IPv4
+=>32bit,2^32=약 42억 9천만개
+     00000000.00000000.00000000.00000000
+		~
+     11111111.11111111.11111111.11111111
+
+2)IPv6
+=>128bit,2^128
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

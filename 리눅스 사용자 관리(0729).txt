@@ -1,0 +1,98 @@
+## Linux 사용자 관리 ##
+
+-리눅스는 다중 사용자, 다중 작업 시스템.
+ 각 사용자마다 계정/패스워드가 필요하다. 사용자 정보는 [/etc/passwd] 파일에서 확인이 가능.
+
+ [root@localhost ~]# tail -1 /etc/passwd
+ itbank:x:1000:1000:itbank:/home/itbank:/bin/bash
+
+ [itbank]:계정명 필드.
+ [X]     :Password 필드.(/etc/shadow에서 확인가능)
+ [1000]  :UID 필드(해당 계정을 식별하는 고유한 ID)
+ [1000]  :Gid 필드(해당 계정이 소속되어 있는 Group ID)
+ [itbank]:Comment 필드 (해당 계정,별칭 설명)
+ [/home/itbank]:해당 사용자의 홈 디렉터리 경로.
+ [/bin/bash]:해당 사용되는 Shell 종류
+
+** Shell:명령어 해석기 / 시스템과 사용자의 대화 창구 **   
+  ->내부 명령어,외부 명령어 실행
+  ->여러 명령어를 연결:파이프(|) 기능 (ex.ls -al | less or more)--shell이 제공해주고 있는 기능
+  ->I/O 리다이렉션.(>,>>)
+  ->환경변수 관리
+  ->스크립트 프로그래밍 언어 처리(자동화 가능)
+
+- sheell의 종류는 다양하다.CentOS는 기본적으로 Bash shell을 사용하고 있다.
+
+[root@localhost ~]# cat /etc/shells
+/bin/sh
+/bin/bash
+/usr/bin/sh
+/usr/bin/bash
+/bin/tcsh
+/bin/csh
+
+-사용자 password는 [/etc/shadow] 파일에서 관리한다.
+
+[root@localhost ~]# tail -1 /etc/shadow
+itbank:$6$2c3PkmZgiuXYgSa8$ZvnyrqqbP../9gb7/KzKmR1Usb4zna2gPv5UwiV9uRgAjYmSJDlGgWNYkxIPNmrOrEWC8KMRw0EIKMFLx8jxa1::0:99999:7:::
+
+[itbank]:계정명 필드
+[$6$2c3PkmZgiuXYgSa8$Zvn(생략):해당 계정 패스워드.(SHA512 해쉬처리 되어 있다.)
+[18106]:Unix 시간(1970년 1월 1일)으로부터 몇 일 뒤에 계정이 생성됐는지 표시.
+[0]:패스워드 최소 사용기간.(예를 들어 5인 경우 5일 이후에 패스워드 변경이 가능)
+[99999]:패스워드 만료일.
+[7]:패스워드 만료전 경고발생 일.
+
+---------------------------------------------------------------------------------------------
+[useradd]:사용자 계청 추가 명령어
+ =>useradd [옵션] [사용자 계정명]
+    ->[-u]:기본 UID를 지정하여 생성.
+      [-c]:comment를 지정하여 생성.
+      [-g]:기본 GID를 지정하여 생성.
+      [-d]:홈 디렉터리를 지정하여 생성.
+      [-s]:사용자에게 부여할 shell의 종류를 선택.
+      [-m -k]:/etc/skel/ 디렉터리가 아닌 사용자가 별도의 skel 디렉터리를 지정
+
+<Ex> itbank1 사용자 생성.
+ #useradd itbank1
+ #tail -2 /etc/passwd ->계정 생성뒤 확인
+ #tail -2 /etc/passwd ->!!는 패스워드가 정의되지 않았다는 의미.
+ #ls -l /home/ ->홈 디렉터리 생성
+ #ls -l /var/spool/mail/ ->사용자 메일함 생성.
+
+-별도의 옵션을 사용하지 않고 사용자 계정을 생성할 경우 다음 파일의 정보에 의해 계정이 구성된다.
+
+1)[/etc/default/useradd]:사용자 계정 생성시 기본값 정의
+
+2)[/etc/login.defs]:사용자 계정 및 password에 관한 설정값을 정의.
+
+3)[/etc/skel/]:사용자 계정을 구성하는 기본 뼈대를 저장하고 있는 directory
+               [/etc/skel/] 디렉터리에 들어있는 파일들은 사용자 계정 생성시 자동으로 해당
+               사용자의 홈 디렉터리로 복사된다.특정 파일을 각 사용자 홈 디렉터리에 배포하고 싶은
+               경우 사용자 생성 전에 /etc/skel/ 디렉터리 밑에 저장한다.
+
+-사용자 계정을 생성하면 기본적으로 홈 디렉터리(/home/<계정명>/)와 메일함(/var/spool/mail/<계정명>)이
+ 자동적으로 생성된다.
+
+
+<Ex.2>itbank2:shell을 [/bin/sh],comment는 [testuser]로 생성.
+#useradd -c testuser -s /bin/sh itbank2
+#tail -3 /etc/passwd ->확인
+
+<Ex.3>itbank3:홈 디렉터리는 [/linux/nor/]로,comment[test],shell [/bin/tcsh]로 생성.
+#useradd -c 
+
+** 사용자 계정 추가는 [root] 계정만 가능하다!! **
+
+-----------------------------------------------------------------------------------------------
+[passwd]:사용자 계정 패스워드 설정 명령어.
+ =>현재 로그인한 사용자 패스워드 변경:#passwd
+   특정 사용자 계정 패스워드 변경    :#passwd <사용자 계정>
+
+
+<Ex> 사용자 패스워드 설정
+#passwd itbank1
+#passwd itbank2
+#passwd itbank3
+#tail -4 /etc/shadow
+

@@ -1,0 +1,45 @@
+## Static Route Configuration ##
+
+[1. 자신의 출구 Interface 방식]
+
+<Seoul>
+conf t
+ip route 150.80.5.160 255.255.255.224 Serial0/0 
+ip route 150.80.5.192 255.255.255.248 Serial0/0
+
+<SP>
+conf t
+ip route 150.80.5.160 255.255.255.224 Serial0/0 
+ip route 150.80.5.192 255.255.255.248 Serial0/0 
+ip route 200.100.7.64 255.255.255.192 Serial0/1
+ip route 200.100.7.128 255.255.255.240 Serial0/1
+
+<Busan>
+conf t
+ip route 200.100.7.64 255.255.255.192 Serial0/1
+ip route 200.100.7.128 255.255.255.240 Serial0/1
+
+---------------------------------------------------------------
+[2. 기존 Static Route 삭제 후 Next-hop IP 방식으로 변경]
+
+<Seoul>
+conf t
+no ip route 150.80.5.160 255.255.255.224 Serial0/0 
+no ip route 150.80.5.192 255.255.255.248 Serial0/0
+
+<SP>
+conf t
+no ip route 150.80.5.160 255.255.255.224 Serial0/0 
+no ip route 150.80.5.192 255.255.255.248 Serial0/0 
+no ip route 200.100.7.64 255.255.255.192 Serial0/1
+no ip route 200.100.7.128 255.255.255.240 Serial0/1
+
+<Busan>
+conf t
+no ip route 200.100.7.64 255.255.255.192 Serial0/1
+no ip route 200.100.7.128 255.255.255.240 Serial0/1
+
+
+설정 방식의 차이일뿐 원리는 같음
+
+

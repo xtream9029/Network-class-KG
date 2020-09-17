@@ -1,0 +1,160 @@
+## Router Interface 종류 ##
+
+[1. LAN 구간 연결 Interface]
+ => 오늘날 LAN 구간에 사용되는 Layer 2 Protocol은 Ethernet 방식이다.
+ => 결과적으로 Router의 경우 LAN 구간을 연결하기 위해 Ethernet 방식의 Interface를
+    사용한다. 
+ => Ethernet(10Mbps) / FastEthernet(100Mbps) / GigabitEthernet(1Gbps) /
+    10GigabitEthernet / ...
+
+
+[2. WAN 구간 연결 Interface]
+
+
+[3. Management 포트]
+ => Device에 새로운 명령어를 입력하거나 혹은 현재 상태를 점검하기 위한 목적의 관리용
+    포트를 의미한다.
+ => Console / AUX 포트가 있다.
+ => 일반적으로 Console 포트를 사용하여 Device에 물리적인 접근 후 설정이 가능하다.
+
+==================================================================================
+## Router 접속 방법 ##
+
+[1. Console 포트 접근]
+ => Router의 Console 포트와 PC의 COM포트(혹은 USB포트)를 Console Cable로 연결하여 직접 
+    접근하는 방식이다.
+ => Console cable을 연결 후 '터미널 프로그램(Putty/xshell/secureCRT..)'을 사용하여
+    Device에 접근하는 것이 가능하다.
+ => Device를 처음 구성하거나 Network 장애로 원격 접근이 불가능한 경우 주로 사용된다.
+
+[2. Remote Access(원격 접근)]
+ => Device가 Network에 연결되어 있고, 원격 접근이 허용되어 있는 경우 원격지에서 Device의
+    IP 주소를 사용하여 원격으로 접근하는 것이 가능하다.
+ => Telnet / SSH / HTTP / HTTPS ...
+
+[3. AUX 포트 접근]
+ => AUX 포트에 Modem을 연결하여 접근하는 것이 가능하다. 하지만 오늘날에는 거의 사용되지 않는
+    방식이다.
+
+================================================================================
+## Cisco IOS Mode ##
+
+- Network Device의 경우도 Device를 운영하기 위한 '운영체제(OS)'가 필요하다.
+  각 벤더마다 자사의 OS를 사용한다.
+
+- Cisco Device(Router, Switch)의 경우 기본적인 운영체제로 'IOS(Internetworking
+  Operating System)'를 사용한다. IOS를 사용하는 Cisco Device들은 모두 동일한 모드와
+  명령어 체계를 사용한다.
+
+- IOS 모드는 다음과 같이 구분된다. (각 모드는 prompt 모양으로 구분이 가능하다.)
+
+[1. EXEC 모드]
+ => [show] 명령어를 사용하여 현재 운영 중인 Device의 상태를 점검하는 것이 가능한 모드이다.
+ => Device의 상태를 파악하는 것은 가능하지만 새로운 설정을 입력하거나 수정하는 것은 불가능하다.
+ => 관리자마다 Privilege level(권한 레벨)을 부여하여 확인할 수 있는 정보를 제한하는 것이 
+    가능하다.(Privilege level 범위는 0 - 15까지이다.)
+ 
+ 1) User 모드 [>]
+  -> 기본적으로 Device에 처음 접속했을 때 User 모드부터 시작이 된다.
+  -> Privilege level이 1이기 때문에 가장 기본적인 정보들만 확인이 가능하다.
+  -> [enable] 명령어를 사용하여 'Privileged 모드'로 이동할 수 있다.
+  -> 'User 모드'와 'Privileged 모드' 사이에는 반드시 Password를 설정해야 한다!!
+
+ 2) Privileged 모드 [#]
+  -> 기본적으로 Privilege level이 15이기 때문에 모든 정보를 확인할 수 있는 모드이다.
+  -> [disable] 명령어를 사용하여 'User 모드'로 이동이 가능하다.
+  -> 모든 정보를 확인하는 것은 가능하지만 실제 Router 설정을 새롭게 입력하거나 변경하는
+     것은 불가능하다. [configure terminal] 명령어를 사용하여 설정 모드로 이동해야만
+     한다.
+
+-----------------------------------------------------------------------------------
+[2. Configuration 모드]
+ => Device에 설정 명령어를 입력하거나 기존 설정을 변경할 수 있는 모드이다.
+ => 다시 'Privilegd 모드(#)'로 이동하기 위해서는 [exit], [Ctrl+c], [Ctrl+z] 등을 입력하면
+    된다.
+ => 기본적으로 'EXEC 모드' 명령어(ex.[show])가 입력되지 않는다. 하지만 'do' 명령어를 'EXEC 
+    모드' 명령어 앞에 입력하면 'Configuration 모드'에서도 사용이 가능하다. 
+    (자동완성(tab) 기능은 지원되지 않는다!)
+
+ 1) Global Configuration 모드 [(config)#]
+  -> '전역 설정' 모드라고 표현하기도 한다.
+  -> Device의 전반적인 관리 설정이 가능하고, 각각의 세부 설정 모드로 이동하는 것이 가능하다.
+  -> 일반적으로 다음과 같은 관리설정이 가능하다.
+     <Ex>
+     Router(config)# hostname Seoul
+     Seoul(config)# enable secret ccna321
+     Seoul(config)# no ip domain lookup
+      => 관리자가 작업하는 동안 User/Privileged 모드에서 한 단어 오타가 발생할 경우 
+         Domain Lookup(DNS 조회)을 수행하지 않도록 하는 명령어.
+      => 작업이 완료되면 [ip domain lookup] 명령어를 사용하여 다시 Domain Lookup
+         기능을 활성화시켜야 한다.
+
+     Seoul(config)# line console 0
+     Seoul(config-line)# exec-timeout 0 0
+      => 관리자가 작업하는 동안 Idle-time을 무한대로 변경하여 명령어를 입력하지 않아도
+         접속을 유지할 수 있게 만든다.
+      => 작업이 완료된 후에는 3-5분 정도의 Idle Time을 부여해야 한다!
+
+     Seoul(config-line)# logging synchronous
+     Seoul(config-line)# password cisco123
+     Seoul(config-line)# login
+     Seoul(config-line)# exit
+
+ 2) Specific Configuration 모드
+  -> Device의 특정 부분에 대해 세부 설정이 가능한 모드이다.
+     <Ex>
+     - Line 모드     [(config-line)#] : Device 접근 및 접근 상태를 제어할 수 있는 모드.
+     - Interface 모드  [(config-if)#] : 특정 Interface에 대한 설정이 가능한 모드.
+     - Router 모드 [(config-router)#] : Dynamic Routing Protocol 설정이 가능한 모드.
+	....
+
+=====================================================================================
+## Router Interface Configuration ##
+
+- Router는 다른 Device와 연결된 Interface에 올바른 대역의 IP 정보를 할당하고,
+  해당 Interface를 활성화시켜야 통신이 가능하다.
+
+ 1. 다른 장치와 연결된 Interface에 들어간다.
+
+ 2. 해당 Interface 역할을 주석으로 입력한다.(Option)
+
+ 3. 해당 Interface에 IP 주소와 Subnet mask를 입력한다.
+
+ 4. 필요한 경우 Layer 2 Protocol / Clock rate / Bandwidth / Delay 등의
+    값을 설정한다.(L2 Protocol과 clock rate는 WAN 구간에서만 설정)
+
+ 5. Interface는 기본적으로 비활성화(shutdown) 상태이다. 활성화 상태로 변경해야
+    한다.(no shutdown)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

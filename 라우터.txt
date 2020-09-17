@@ -1,0 +1,15 @@
+##Router Interface 종류  ##
+
+[1.LAN 구간 연결 Interface]
+ =>오늘날 LAN 구간에 사용되는 Layer 2 Protocol은 Ethernet 방식이다.
+ =>결과적으로 Router의 경우 LAN 구간을 연결하기 위한 Eternet 방식의 Interface를 
+   사용한다.
+ =>Ethernet(10Mbps) /FastEthernet(100Mbps) /GigabitEthernet(1Gbps) / 10GigabitEthernet/..
+
+[2.WAN 구간 연결 Interface]
+
+[3.management 포트]
+ =>Device에 새로운 명령어를 입력하거나 혹은 현재 상태를 점검하기 위한 목적의 관리용 포트를
+   의미한다.
+ =>Console/AUX 포트가 있다.(AUX포트는 거의 쓸일 없음)
+ =>일반적으로 Console 포트를 사용하여 Device에 물리적인 접근 후 설정이 가능하다.

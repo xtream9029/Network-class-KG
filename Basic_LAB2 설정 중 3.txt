@@ -1,0 +1,202 @@
+<공통>
+en
+conf t
+no ip domain loo
+enable secret ccna321
+lin con 0
+ exec-time 0 0
+ logging syn
+ password cisco123
+ login
+exit
+
+<Seoul>
+ho Seoul
+int fa 0/1
+ desc ##Seoul_HQ_Office1##
+ ip add 211.100.10.94 255.255.255.224
+ no shut
+!
+int fa 0/0
+ desc ##Seoul_HQ_Office2##
+ ip add 211.100.10.126 255.255.255.224
+ no shut
+!
+int s 0/1
+ desc ##Daegu_WAN_Connection##
+ ip add 1.1.100.6 255.255.255.252
+ clock rate 500000
+ no shut
+!
+int s 0/0
+ desc ##Busan_WAN_Connection##
+ ip add 1.1.100.2 255.255.255.252
+ clock rate 64000
+ no shut
+!
+
+<Busan>
+ho Busan
+int fa 0/0
+ desc ##Busan_Branch_Office##
+ ip add 100.1.1.254 255.255.255.0
+ no shut
+!
+int s 0/1
+ desc ##Daegu_WAN_Connection##
+ ip add 1.1.100.10 255.255.255.252
+ clock rate 500000
+ no shut
+!
+int s 0/0
+ desc ##Seoul_WAN_Connection##
+ ip add 1.1.100.1 255.255.255.252
+ no shut
+!
+
+<Daegu>
+ho Daegu
+int fa 0/0
+ desc ##Daegu_Branch_Office##
+ ip add 150.200.1.254 255.255.255.128
+ no shut
+!
+int s 0/0
+ desc ##Busan_WAN_Connection##
+ ip add 1.1.100.9 255.255.255.252
+ no shut
+!
+int s 0/1
+ desc ##Seoul_WAN_Connection##
+ ip add 1.1.100.5 255.255.255.252
+ no shut
+!
+
+- verify -
+show running-config
+show ip interface brief
+show ip route
+인접 구간 Ping test
+
+====================================================
+** Static Route Configuration **
+
+<Seoul>
+conf t
+ip route 100.1.1.0 255.255.255.0 serial 0/0
+ip route 150.200.1.128 255.255.255.128 serial 0/1
+
+<Busan>
+conf t
+ip route 211.100.10.64 255.255.255.224 serial 0/0
+ip route 211.100.10.96 255.255.255.224 serial 0/0
+ip route 150.200.1.128 255.255.255.128 serial 0/1
+
+<Daegu>
+conf t
+ip route 211.100.10.64 255.255.255.224 serial 0/1
+ip route 211.100.10.96 255.255.255.224 serial 0/1
+ip route 100.1.1.0 255.255.255.0 serial 0/0
+
+** 경로 우회 설정 **
+
+<Seoul>
+conf t
+int s 0/0
+ shutdown
+!
+no ip route 100.1.1.0 255.255.255.0 serial 0/0
+
+ip route 100.1.1.0 255.255.255.0 serial 0/1
+
+<Busan>
+conf t
+no ip route 211.100.10.64 255.255.255.224 serial 0/0
+no ip route 211.100.10.96 255.255.255.224 serial 0/0
+
+ip route 211.100.10.64 255.255.255.224 serial 0/1
+ip route 211.100.10.96 255.255.255.224 serial 0/1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

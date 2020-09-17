@@ -1,0 +1,64 @@
+어떤 웹페이지가 뜨는 과정을 설명
+
+#TCP/IP 와 OSI 7 layer model을 설명 
+
+1.TCP/IP Model(=Dod(미 국방성 모델))
+=>오늘날 실제 사용하는 표준 프로토콜에 대한 모델이다.
+
+2.OSI 7 layer model
+=>iso(국제 표준화 기구)에서 internetworking에 사용하기 위한 목적의 프로토콜로
+연구를 진행하였다.하지만 연구 과정이 많이 지연되었고 결과적으로 TCP/IP가 인터넷 
+표준 프로토콜로 자리를 잡았다.==실제 프로토콜로 구현된 경우는 많지 않고,주로 연구용/교육용/개발을 위한
+참조 모델로 활용되고있음
+
+어떤 문제가 발생했을때 각 단계 과정을 확인할수 있기때문에 장애처리에 용이함
+
+circuit switching(회선 교환망)의 단점을 설명===>packet switching 로 발전
+1.call setup(회선 연결하는데 걸리는 시간)
+
+2.회선 공유
+
+3.경로 우회
+
+packet switching 
+:call setup이 필요없고 회선공유가 가능함 경로우회도 가능함
+데이터를 한번에 보내는게 아니고 분할해서 보냄 분할된 데이터들은 각각 시퀀스 번호를 부여받음
+
+TCP/IP는 TCP와 IP만 있는게아니라 프로토콜의 모음
+
+OSI 7 Layer Model
+
+<상위계층:application>====>데이터를 만드는 계층(네이버에 어떤 부탁을함 ,네이버가 응답 데이터를 만듦)
+7계층:application                  
+6계층:presentation
+5계층:session
+
+<하위계층:data-flow>
+4계층:transport	데이터를 포장하고 전기신호(physical)로 보냄 서비스에 관련된 요청 데이터를 만듦
+3계층:network
+2계층:data-flow
+1계층:physical
+
+##L4(transport 계층):
+1.L4의 역할:포트번호를 사용하여 서비스를 식별한다.
+
+2.L4 Protocol:TCP(transmission control protocol):연결지향성/신뢰성,속도 느림
+	     UDP(user datagram protocol):비연결지향성/비신뢰성,속도 빠름
+
+3.L4정보:포트번호 (서비스 식별자):범위 0~2^16-1
+		1)well-known:0~1023
+		2)registered:1024~49151
+		3)dynamic:49152~65535	
+
+4.L4 PDU(Protocol data unit)
+어디까지 포장되어있는지에따라 부르는 데이터의 단위
+1)TCP헤더+DATA:segment
+2)UDP헤더+DATA:datagram
+
+5.L4 Device:L4 switch
+
+www.naver.com=>도메인 이름
+DNS:어떤 홈페이지 도메인 이름을 보고 그 도메인 이름의 IP를 알려주는 서비스 프로토콜
+
+방화벽은 포트번호로 그 안정성을 판단함
+

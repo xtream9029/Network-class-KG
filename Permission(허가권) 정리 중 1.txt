@@ -1,0 +1,59 @@
+## Permission(허가권) ##
+
+[root@localhost ~]# ls -ld /bin/
+ dr-xr-xr-x. 2 root root 53248  7월 15 14:25 /bin/
+
+[root@localhost ~]# ls -l /bin/ls
+ -rwxr-xr-x. 1 root root 117680 10월 31  2018 /bin/ls
+  ---------    ---------
+    허가권         소유권
+	
+	4   2   1	4   2   1	4   2   1
+
+	r   w   x	r   w   x	r   w   x
+	
+	---------	---------	---------
+          Owner           Group           other
+         (소유자)          (그룹)         (그 외 사용자)
+
+
+-------------------------------------------------------------------------------------
+** CentOS_A 웹 서비스 구성 **
+
+- 공유폴더의 [HTTP] 폴더 안에 있는 2개의 파일을 FTP를 사용하여 /home/itbank/로 업로드 후 작업.
+
+[root@localhost ~]# rpm -qa httpd
+httpd-2.4.6-88.el7.centos.x86_64
+
+[root@localhost ~]# systemctl status httpd
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+   Active: inactive (dead)
+     Docs: man:httpd(8)
+           man:apachectl(8)
+
+[root@localhost ~]# systemctl start httpd
+[root@localhost ~]# systemctl enable httpd
+
+[root@localhost ~]# firewall-cmd --zone=public --list-all
+[root@localhost ~]# firewall-cmd --permanent --add-service=http
+[root@localhost ~]# firewall-cmd --reload
+
+[root@localhost ~]# cp /home/itbank/index.html /home/itbank/kg* /var/www/html/
+[root@localhost ~]# ls -l /var/www/html/
+
+[root@localhost ~]# mkdir /var/www/html/image/
+[root@localhost ~]# mv /var/www/html/kg* /var/www/html/image/
+[root@localhost ~]# ls -l /var/www/html/ /var/www/html/image/
+
+
+
+
+
+
+
+
+
+
+
+

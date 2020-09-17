@@ -1,0 +1,387 @@
+## Permission(허가권) ##
+
+[root@localhost ~]# ls -ld /bin/
+ d1. 2 root root 53248  7월 15 14:25 /bin/
+
+[root@localhost ~]# ls -l /bin/ls
+ -rwxr-xr-x. 1 root root 117680 10월 31  2018 /bin/ls
+  ---------    ---------
+    허가권         소유권
+	
+	4   2   1	4   2   1	4   2   1
+	r   w   x	r   w   x	r   w   x
+	---------	---------	---------
+          Owner           Group           other
+         (소유자)          (그룹)         (그 외 사용자)
+
+- Read : 읽기(r) / Write : 쓰기(w) / eXecute : 실행(x)
+
+-----------------------------------------------------------------------------------
+[ chmod ] : 허가권 변경 명령어
+ => 허가권 변경은 root 계정과 해당 파일의 소유자(Owner)만 가능하다.
+ => # chmod [permission] [file/directory]
+        -> Symbolic Method
+        -> Numeric Method
+
+<1. Symbolic Method>
+	- (+) : 허가권 추가
+        - (-) : 허가권 제거
+	------------------
+        - (u) : user(owner, 소유자)
+        - (g) : group
+	- (o) : other(나머지 사용자)
+        - (a) : all
+
+	ex> chmod u+x,g+wx,o+x <file 명>
+            chmod u-w,g-x,o+w-x <file 명>
+
+<2. Numeric Method>
+
+ 	ex> chmod 644 <file 명>
+            chmod 752 <file 명>
+	   
+Ex 1> testfile을 생성 후 chmod로 허가권 변경을 테스트해보자.
+ 
+ # cd /home/itbank/
+ # touch testfile
+ # ls -l testfile
+ # chmod 000 testfile
+
+   1. numeric method 방법으로 변경  : rw- -w- -wx
+   2. symbolic method 방법으로 변경 : -wx r-x rw-
+   3. numeric method 방법으로 변경  : r-x -w- rw-
+  
+<풀이>
+ # chmod 623 ./testfile
+ # chmod u-r+x,g+rx-w,o+r-x ./testfile
+ # chmod 526 ./testfile
+
+-------------------------------------------------------------------------------------
+Ex 2> 디렉터리에 대한 허가권 설정
+
+ # mkdir -p /data/ptest/; cd /data/ptest/
+ # touch ptestfile
+ # echo "permission test file" > ptestfile
+ # ls -l; cat ptestfile
+
+1) [/data/ptest/] 디렉터리에서 other에 대해 실행(x) 권한 제거.
+ # chmod o-x /data/ptest/
+ # su - itbank1
+ $ cd /data/ptest/           => other에게 실행(x) 권한이 없기 때문에 cd 명령어를 사용할 수 없다!
+ $ cat /data/ptest/ptestfile => 내부 파일에 허가권이 있어도 디렉터리 자체에 실행(x) 권한이 없는 경우
+                                내부 파일을 사용할 수 없다.
+
+2) [/data/ptest/] 디렉터리에서 other에 대해 실행(x) 권한만 부여.
+ $ exit
+ # chmod 751 /data/ptest/
+ # su - itbank1
+ $ cd /data/ptest/           => 디렉터리에 실행(x) 권한이 있으면 cd로 이동이 가능.
+ $ cat /data/ptest/ptestfile => 디렉터리에 들어올 수 있는 실행(x) 권한이 있으면 내부파일 사용이 가능.
+ $ ls -l /data/ptest/        => 디렉터리에 읽기(r) 권한이 없으면 목록보기(ls)가 불가능.
+
+3) [/data/ptest/] 디렉터리에서 other에 대해 읽기(r), 실행(x) 권한 부여.
+ $ exit
+ # chmod o+r /data/ptest/
+ # su - itbank1
+ $ cd /data/ptest/
+ $ cat /data/ptest/ptestfile
+ $ ls -l /data/ptest/
+
+4) [/data/ptest/ptestfile] 내용 수정하기
+ $ echo "test2" >> ptestfile       => 파일에 other에 대한 쓰기(w) 권한이 없기 때문에 실패.
+ $ exit
+ # chmod o+w /data/ptest/ptestfile
+ # su - itbank1
+ $ cd /data/ptest/
+ $ echo "test2" >> ptestfile
+ $ cat ptestfile
+
+5) [/data/ptest/ptestfile] 파일 삭제
+ $ rm /data/ptest/ptestfile        => 파일 삭제 실패.
+ $ exit
+ # chmod o+x /data/ptest/ptestfile => 파일에 other에 대한 모든 권한(rwx)을 부여.
+
+ # su - itbank1
+ $ cd /data/ptest/
+ $ rm ptestfile                     => 모든 권한을 부여했지만 파일 삭제는 실패.
+
+ $ exit
+ # chmod 757 /data/ptest/           => 디렉터리에 쓰기(w) 권한 부여
+ # chmod 644 /data/ptest/ptestfile  => 파일에 쓰기(w), 실행(x) 권한 삭제.
+
+ # su - itbank1
+ $ cd /data/ptest/
+ $ rm ptestfile 
+
+6) 디렉터리에 읽기(r) 권한이 없는 경우 파일 생성(ex.touch)이 가능한가?
+ $ exit
+ # chmod o-r /data/ptest/    => 디렉터리에서 읽기(r) 권한 제거.
+ $ su - itbank1
+ $ cd /data/ptest/
+ $ touch testfile2; mkdir testdir => 디렉터리에 쓰기(w) 권한이 있는 경우 파일/디렉터리 생성이 가능.
+                                     (읽기(r) 권한은 파일 생성에 관여하지 않는다.)
+ 
+ $ ls -l /data/ptest/             => 디렉터리 읽기(r) 권한이 없어서 실패.
+  ls: cannot open directory /data/ptest/: 허가 거부
+
+ $ ls -l /data/ptest/testfile2    => 확인 가능.
+ $ ls -ld /data/ptest/testdir     => 확인 가능.
+
+7) 디렉터리에 읽기(r) 권한이 없는 경우 삭제(rm), 파일이동(mv)이 가능한가?
+ $ mv ./testfile2 ./testfile22    => 성공
+ $ ls -l /data/ptest/testfile22 
+ $ ls -l /data/ptest/testfile2
+
+ $ rm -f ./testfile22
+ $ ls -l ./testfile22
+  => 디렉터리에 쓰기(w) 권한만 있으면 파일이동, 삭제, 생성 등이 가능하다. 
+     읽기(r) 권한은 이 부분에 대해서 아무런 관여를 하지 않는다.
+
+<결론 1> : Direcotry 허가권에서 '읽기(r)'는 디렉터리 목록보기(ls)와 복사(cp), '쓰기(w)'는 내부 파일의
+          이동, 삭제, 생성(mv, rm, touch, mkdir..), '실행(x)'은 디렉터리 접근(cd)이 가능한 권한이다.
+           => 디렉터리 접근(cd)이 가능해야 내부 파일을 사용할 수 있다.(파일 권한에 따라서 사용)
+
+<결론 2> : File 허가권에서 '읽기(r)' 문서 내용 보기, '쓰기(w)'는 문서 내용 수정, '실행(x)'은 실행파일
+          구동. 실행 파일이 아닌 텍스트 파일에는 '실행(x)' 권한이 없다.
+
+-----------------------------------------------------------------------------------------
+** CentOS_A 웹 서비스 구성 **
+
+- 공유폴더의 [HTTP] 폴더 안에 있는 2개의 파일을 FTP를 사용하여 /home/itbank/로 업로드 후 작업.
+
+[root@localhost ~]# rpm -qa httpd
+httpd-2.4.6-88.el7.centos.x86_64
+
+[root@localhost ~]# systemctl status httpd
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+   Active: inactive (dead)
+     Docs: man:httpd(8)
+           man:apachectl(8)
+
+[root@localhost ~]# systemctl start httpd
+[root@localhost ~]# systemctl enable httpd
+
+[root@localhost ~]# firewall-cmd --zone=public --list-all
+[root@localhost ~]# firewall-cmd --permanent --add-service=http
+[root@localhost ~]# firewall-cmd --reload
+
+[root@localhost ~]# cp /home/itbank/index.html /home/itbank/kg* /var/www/html/
+[root@localhost ~]# ls -l /var/www/html/
+
+[root@localhost ~]# mkdir /var/www/html/image/
+[root@localhost ~]# mv /var/www/html/kg* /var/www/html/image/
+[root@localhost ~]# ls -l /var/www/html/ /var/www/html/image/
+
+==============================================================================================
+<실습 1>
+1. windows 7에서 [http://<CentOS IP 주소>]로 접속하면 새로운 페이지가 확인된다. [/var/www/html/]
+   디렉터리의 허가권을 다음과 같이 변경하면서 웹 브라우저에서 내용이 출력되는지 확인해보자.
+   (페이지가 정상출력되지 않는 경우 이유를 생각해보자.)
+
+     1) rwx r-x r-x (   기본값 : 755   ) : O           
+     2) rwx r-- -wx ( Symbolic method ) : O
+     3) rwx r-x --x ( Symbolic method ) : O
+     4) rwx r-x r-- ( Numeric method  ) : X
+ 
+      => Test 후 다시 [rwx r-x r-x]로 변경하자.
+
+2. [/var/www/html/index.html]의 권한을 아래와 같이 변경하면서 explorer에서 F5를 눌러 접속을 확인해보자.
+   (기본값 : 644)
+     1) rw- r-- r-- (기본값 : 644) : o
+     2) rw- r-- ---
+
+---------------------------------------------------------------------------------------------
+- 기본적으로 각 사용자 계정의 홈 디렉터리의 기본 허가권 700(rwx --- ---)이다.
+  
+# ls -ld /home/itbank/
+ drwx------. 5 itbank sysadmin 277  8월  1 12:46 /home/itbank/
+
+<실습 2> 허가권을 변경할 대상 디렉터리 : [/home/itbank/]
+	700	600	500	400	300	200	100
+
+[작업순서]
+1. itbank계정의 홈dir의 허가권을 위 숫자로 한번씩 변경
+2. FTP를 이용하여 itbank계정으로 로그인이 되는지 확인.
+3. FTP를 이용하여 itbank계정으로 로그인 후 목록보기, File Upload, Download 되는지 확인.
+
+- 700(RWX) : 로그인 가능 / 목록보기 가능 / 업로드 가능 / 다운로드 가능
+- 600(RW-) : 로그인 불가능
+- 500(R-X) : 로그인 가능 / 목록보기 가능 / 다운로드 가능 / 업로드 불가능
+- 400(R--) : 로그인 불가능
+- 300(-WX) : 로그인 가능 / 목록보기 불가능 / 다운로드 불가능 / 업로드 가능
+- 200(-W-) : 로그인 불가능
+- 100(--X) : 로그인 가능 / 그 외 나머지 불가능.
+
+======================================================================================
+## umask ##
+
+- 디렉터리, 파일을 생성할 경우 기본 허가권(Permission)을 결정해주는 역할을 수행한다.
+  [umask] 명령어를 사용하면 현재 사용중인 umask 값을 확인할 수 있다. (기본값 : 0022)
+   => umask 내용은 [/etc/profile]에 설정되어 있다.
+
+[root@localhost ~]# mkdir /umasktest/
+[root@localhost ~]# cd /umasktest/
+ 
+[root@localhost umasktest]# touch testfile
+[root@localhost umasktest]# mkdir testdir
+ 
+[root@localhost umasktest]# ls -l
+합계 0
+ drwxr-xr-x. 2 root root 6  8월  5 12:45 testdir
+ -rw-r--r--. 1 root root 0  8월  5 12:45 testfile
+
+ - 디렉터리 기본 허가권  => 모든 권한이 부여된 Permission(777) - 022 = rwx r-x r-x (755)
+ -  파일의 기본 허가권  =>  실행(x)을 제외한 Permission(666) - 022 = rw- r-- r-- (644)
+
+<Ex> umask 변경 테스트 (생성할 다수의 파일/디렉터리의 허가권을 임의적으로 변경하려는 경우 사용)
+
+ # umask 0002         => 이 방식은 일시적인 변경이다. shell 세션을 끊으면 초기화된다.
+ # umask 
+ # cd /umasktest/
+ # touch testfile2    => rw- rw- r-- (666 - 002 = 664)
+ # mkdir testdir2     => rwx rwx r-x (777 - 002 = 775)
+ # ls -lt
+
+==========================================================================================
+## 소유권(Ownership) ##
+
+UID : 시스템이 사용자 계정을 구분하는 ID 값.
+GID : 시스템이 그룹을 구분하는 ID 값.
+
+# ls -ld /home/itbank1/
+drwx------. 6  itbank1  sales  174  8월  1 15:02 /home/itbank1/
+               [소유자]:[소유그룹]
+
+-----------------------------------------------------------------------------------------
+[ chown ] : 소유권 변경 명령어
+ => 파일/디렉터리 소유권 변경은 root 계정만 가능.
+
+Ex> 높은 레벨의 관리자인 itbank2 사용자가 자신이 생성한 파일을 itbank1 사용자 홈 디렉터리로 복사 후
+    itbank1 계정으로 해당 파일을 편집할 수 있도록 소유권을 변경해보자
+
+ # su - itbank2
+ $ pwd
+ $ echo "test file" > testfile
+ $ cp ./testfile /home/itbank1/
+  cp: cannot stat `/home/itbank1/testfile': 허가 거부
+
+ $ sudo cp ./testfile /home/itbank1/            => root 계정 권한으로 복사 가능.
+ $ sudo ls -lt /home/itbank1/
+  -rw-r--r--. 1 root    root  10  8월  5 13:45 testfile  => 소유자는 root 계정.
+   
+ $ sudo chown itbank1:sales /home/itbank1/testfile
+ $ sudo ls -lt /home/itbank1/
+  -rw-r--r--. 1 itbank1 sales 10  8월  5 13:45 testfile  => 소유자, 소유그룹 변경 확인.
+
+- [chown] 명령어 사용법
+
+ 1) Owner 변경
+  # cd /backup/
+  # chown itbank ./grub.cfg
+  # ll
+
+ 2-1) 소유자:소유그룹 변경
+  # chown itbank1:sales ./inittab
+  # ll
+
+ 2-2) 소유자.소유그룹 변경
+  # chown root.root ./inittab
+  # ll
+
+ 2-3) 소유자가 속해있는 소유그룹으로 변경.
+  # chown itbank1. ./inittab
+  # ll
+
+  # chown root. ./inittab
+  # ll
+
+ 3) 소유그룹만 변경 ([chgrp] 명령어 사용도 가능)
+  # chown .sales ./inittab
+  # ll
+
+-------------------------------------------------------------------------------------
+<실습>
+- 공유 디렉터리 설정에 관한 문제 해결책을 확인해보자. 
+
+ 1) bill과 karen이라는 두 사용자를 생성. 둘은 MP3 포맷의 음악 파일이 저장된 곳을 공유 디렉터리로
+    설정하기를 원한다.
+	# useradd bill
+	# useradd karen
+	# passwd bill
+	# passwd karen
+	# tail -2 /etc/passwd
+
+ 2) bill은 sudo로 super user 특권에 접근할 수 있게 설정.
+    (이후 작업은 모두 bill 계정에서 sudo로 진행.)
+	# visudo      => [/etc/sudoers] 파일 수정	
+         bill ALL = NOPASSWDL: ALL
+
+	# su - bill
+
+ 3) bill은 music 그룹(GID: 2001)을 생성 후 bill과 karen을 멤버로 추가한다.
+	$ sudo groupadd -g 2001 music
+	$ sudo usermod -g 2001 bill
+	$ sudo usermod -g music karen
+	$ tail -2 /etc/passwd
+	$ id bill
+	$ id karen
+
+ 4) 음악 파일을 공유를 위한 디렉터리 생성. ([/usr/local/share/music/]
+	$ sudo mkdir /usr/local/share/music/
+	$ ls -ld /usr/local/share/music/
+
+ 5) 생성한 디렉터리가 공유 가능하도록 소유 그룹을 music으로 변경하고, 그룹 허가권에서 쓰기 권한을 추가.
+    (music 그룹의 사용자들이 해당 디렉터리 내부에 파일 및 디렉터리 생성,삭제,이동이 가능해야 한다.)
+	$ sudo chown .music /usr/local/share/music/
+	$ sudo chmod g+w /usr/local/share/music/
+	$ ls -ld /usr/local/share/music/
+
+ 6) music 디렉터리는 아티스트와 장르에 따라 디렉터리를 생성 후 파일을 구분하고자 한다. 이를 위해 다른 
+    그룹 멤버가 생성한 내부 디렉터리 안에 또 다른 디렉터리와 파일을 생성할 수 있어야 한다. 
+    하지만 music 디렉터리에 안에 내부 디렉터리를 생성하면 기본적 허가권이 755(rwx r-x r-x)이기 때문에
+    불가능하다. ([usr/local/share/music/classic/] 생성 후 확인해보자.)
+    이를 해결하기 위해 umask를 변경하여 디렉터리 생성시 해당 그룹에 대해 자동으로 쓰기(w) 퍼미션이 부여
+    되도록 설정.
+        - 세션을 끊었다가 다시 bill 계정으로 로그인 후 작업.
+	$ cd /usr/local/share/music/
+        $ pwd
+	$ mkdir ./classic/
+	$ ls -ld ./classic/
+	 drwxr-xr-x. 2 bill music 6  8월  5 15:08 ./classic/
+	
+	$ su - karen
+	$ cd /usr/local/share/music/classic/
+	$ mkdir ./Mozart/            => 쓰기(w) 권한이 없기 때문에 실패!
+	$ exit                       => bill 계정으로 변경
+
+	$ umask 0002
+	$ umask
+	$ rm -rf /usr/local/share/music/classic/
+	$ mkdir /usr/local/share/music/classic/
+	$ ls -ld /usr/local/share/music/classic/
+
+	$ su - karen
+        $ umask 0002
+	$ cd /usr/local/share/music/classic/
+	$ mkdir ./Mozart/ ./Chopin/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

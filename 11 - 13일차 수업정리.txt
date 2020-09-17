@@ -1,0 +1,382 @@
+## Linux 사용자 관리 ##
+
+- 리눅스는 다중 사용자, 다중 작업 시스템.
+  각 사용자마다 계정/패스워드가 필요하다. 사용자 정보는 [/etc/passwd] 파일에서 확인이 가능.
+
+ [root@localhost ~]# tail -1 /etc/passwd
+ itbank:x:1000:1000:itbank:/home/itbank:/bin/bash
+
+ [itbank] : 계정명 필드.
+ [X]      : Password 필드.([/etc/shadow]에서 확인 가능)
+ [1000]   : UID 필드 (해당 계정을 식별하는 고유한 ID)
+ [1000]   : GID 필드 (해당 계정이 소속되어 있는 Group ID)
+ [itbank] : Comment 필드 (해당 계정 별칭, 설명)
+ [/home/itbank] : 해당 사용자의 홈 디렉터리 경로.
+ [/bin/bash] : 해당 사용자가 사용하는 Shell 종류.
+
+** Shell : 명령어 해석기 / 시스템과 사용자의 대화 창구 **
+  -> 내부 명령어, 외부 명령어 실행
+  -> 여러 명령어를 연결 : 파이프(|) 기능 (ex. ls -al | less)
+  -> I/O 리다이렉션. (>, >>)
+  -> 환경변수 관리
+  -> 스크립트 프로그래밍 언어 처리(자동화 가능)
+
+- shell의 종류는 다양하다. CentOS는 기본적으로 Bash shell을 사용하고 있다.
+ 
+[root@localhost ~]# cat /etc/shells
+ /bin/sh
+ /bin/bash
+ /usr/bin/sh
+ /usr/bin/bash
+ /bin/tcsh
+ /bin/csh
+
+- 사용자 Password는 [/etc/shadow] 파일에서 관리한다.
+
+ [root@localhost ~]# tail -1 /etc/shadow
+  itbank:$6$JBxSqOVW8Oh8.Smt $yfrva6K9p4QbxGJGC2LBjar4zt6PC0DdYTd6(생략)::0:99999:7:::
+
+ [itbank]       : 계정명 필등
+ [$6$JBxS(생략)] : 해당 계정 패스워드.(SHA512 해쉬처리 되어 있다.)
+ [18106]        : Unix 시간(1970년 1월 1일)으로부터 몇 일 뒤에 계정이 생성됐는지 표시.
+ [0]		: 패스워드 최소 사용기간.(예를 들어 5인 경우 5일 이후에 패스워드 변경이 가능)
+ [99999]        : 패스워드 만료일.
+ [7]            : 패스워드 만료 전 경고발생 일.
+
+---------------------------------------------------------------------------------------
+[useradd] : 사용자 계정 추가 명령어.
+ => useradd [옵션] [사용자 계정명]
+    -> [-c] : comment를 지정하여 생성.
+    -> [-u] : 기본 UID를 지정하여 생성.
+    -> [-g] : 기본 GID를 지정하여 생성.
+    -> [-d] : 홈 디렉터리를 지정하여 생성.  
+    -> [-s] : 사용자에게 부여할 Shell의 종류를 선택.
+    -> [ -m -k 혹은 -mk ] : /etc/skel/ 디렉터리가 아닌 사용자가 별도의 skel 디렉터리를 지정
+	....
+
+<Ex 1> itbank1 사용자 생성.
+ # useradd itbank1
+ # tail -2 /etc/passwd
+ # tail -2 /etc/shadow    => !!는 패스워드가 정의되지 않았다는 의미.
+ # ls -l /home/           => 홈 디렉터리 생성. 
+ # ls -l /var/spool/mail/ => 사용자 메일함 생성.
+
+- 별도의 옵션을 사용하지 않고 사용자 계정을 생성할 경우 다음 파일의 정보에 의해 계정이 구성된다.
+
+ 1) [/etc/default/useradd] : 사용자 계정 생성시 기본값 정의.
+
+ 2) [/etc/login.defs] : 사용자 계정 및 Password에 관한 설정값을 정의.
+
+ 3) [/etc/skel/] : 사용자 계정을 구성하는 기본 뼈대를 저장하고 있는 Directory.
+                   [/etc/skel/] 디렉터리에 들어있는 파일들은 사용자 계정 생성시 자동으로 해당 
+                   사용자의 홈 디렉터리로 복사된다. 특정 파일을 각 사용자 홈 디렉터리에 배포하고 싶은
+                   경우 사용자 생성 전에 /etc/skel/ 디렉터리 밑에 저장한다.
+
+- 사용자 계정을 생성하면 기본적으로 홈 디렉터리(/home/<계정명>/)와 메일함(/var/spool/mail/<계정명>/)이
+  자동으로 생성된다.
+
+Ex 2> itbank2 : comment는 [testuser], shell은 [/bin/sh]로 생성.
+ # useradd -c testuser -s /bin/sh itbank2
+ # tail -3 /etc/passwd
+ # ls -l /home/
+ # ls -al /home/itbank2/
+
+Ex 3> itbank3 : 홈 디렉터리는 [/linux/nor/], comment는 [test], shell은 [/bin/tcsh]로 생성.
+ # mkdir /linux/
+ # useradd -d /linux/nor -c testuser -s /bin/tcsh itbank3
+ # tail -4 /etc/passwd
+ # ls -l /home/
+ # ls -l /linux/
+ # ls -al /linux/nor/
+
+** 사용자 계정 추가는 [root] 계정만 가능하다!! **
+
+-----------------------------------------------------------------------------------------
+[passwd] : 사용자 패스워드 설정 명령어.
+ => 현재 로그인한 사용자 패스워드 변경 : # passwd 
+    특정 사용자 계정 패스워드 변경    : # passwd <사용자 계정>
+
+<Ex> 사용자 패스워드 설정
+ # passwd itbank1
+ # passwd itbank2
+ # passwd itbank3
+ # tail -4 /etc/shadow
+
+-----------------------------------------------------------------------------------------
+[root@localhost ~]# touch /etc/skel/testfile
+[root@localhost ~]# ls -al /etc/skel/
+[root@localhost ~]# useradd itbank4
+[root@localhost ~]# ls -al /home/itbank4/
+ 
+** 시작 스크립트 **
+- 로그인 시 [/etc/profile -> ~/.bash_profile -> ~/.bashrc -> /etc/bashrc] 순서로 
+  실행되면서 환경을 설정한다.
+
+- [.bashrc] 파일은 bash shell 초기화 파일. 
+  특정 계정으로 로그인을 하면 해당 계정의 홈 디렉터리 밑에 있는 [.baschrc] 파일이 실행되면서
+  해당 사용자의 환경을 구성할 수 있다.
+
+<Ex 1> alias 고정
+ # vi .bashrc
+
+   alias 1=clear
+   alias lsa='ls -a'
+    => 추가 후 :wq 로 저장, 종료.
+    => 로그아웃 후 다시 로그인을 수행하면 확인이 가능하다.
+
+
+- [~/.bash_profile] 파일은 bash shell쉘이 수행될 때 실행되는 프로그램을 제어. 
+  개인이 로그인시 적용되는 환경설정 파일로 해당 사용자에게만 영향을 미친다. 
+
+<Ex 2-1> Root 계정에 PATH(실행파일 경로) 추가.
+ [root@localhost ~]# cd /home/test
+ [root@localhost test]# touch abc.sh   
+ [root@localhost test]# vi abc.sh
+
+	 #!/bin/sh
+
+	  echo 안녕하세요?
+	  echo
+
+	  exit 0
+
+ [root@localhost test]# ls -l abc.sh
+  -rw-r--r--. 1 root root 53  7월 28 20:46 abc.sh
+
+ [root@localhost test]# chmod 655 abc.sh   
+ [root@localhost test]# ls -l abc.sh
+  -rw-r-xr-x. 1 root root 53  7월 28 20:46 abc.sh
+
+ [root@localhost test]# abc.sh
+  bash: abc.sh: 명령을 찾을 수 없습니다...
+
+ [root@localhost test]# echo $PATH
+  /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+
+ [root@localhost test]# ./abc.sh
+  안녕하세요?
+
+ [root@localhost test]# cd ~
+ [root@localhost ~]# vi .bash_profile
+
+  PATH=$PATH:$HOME/bin:/home/test  => 마지막에 /home/test 추가
+
+- logout 후 root 계정으로 로그인하면 아래와 같이 성공.
+
+ [root@localhost ~]# echo $PATH
+  /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:/home/test
+
+ [root@localhost ~]# abc.sh
+  안녕하세요?
+
+<Ex 2-2> 모든 사용자 계정에 PATH 디렉터리 추가
+
+ # vi /etc/profile
+
+	# Path manipulation
+	if [ "$EUID" = "0" ]; then
+ 	   pathmunge /usr/sbin
+  	  pathmunge /usr/local/sbin
+	else
+ 	   pathmunge /usr/local/sbin after
+ 	   pathmunge /usr/sbin after
+	fi
+	pathmunge /home/test after    => 이 부분을 추가 입력.
+
+-----------------------------------------------------------------------------------------
+** 사용자 계정 추가 실습 **
+
+- [/etc/skel/] 디렉터리에 있는 파일들을 [/etc/itskel/] 복사 후 해당 디렉터리를 사용하여
+  itbank5 계정을 추가생성.
+
+  # mkdir /etc/itskel/
+  # cp /etc/skel/* /etc/itskel/
+  # cp /etc/skel/.* /etc/itskel/      => 숨김파일을 복사할 경우 . 사용
+  # cp -r /etc/skel/.m* /etc/itskel/  => 디렉터리 복사는 [-r] 사용
+  # ls -al /etc/skel/ /etc/itskel/
+  # mkdir /etc/itskel/security/
+  # touch /etc/itskel/security/.firewall_policy
+  # useradd -mk /etc/itskel/ itbank5
+  # passwd itbank5
+
+  # ls -l /home/
+  # ls -al /home/itbank5/security/
+
+<최종 실습>
+작업환경
+user : testuser2
+UID  : 1201
+Shell : csh
+$HOME : /hosting/testuser2/
+skel : /samskel/
+Auto Creating Directory : Public_html
+Auto Creating File : .sam
+
+기본적인 구성을 완료 후 useradd명령어를 이용하여 위 조건에 맞는 사용자 testuser를 생성 [ 옵션을 사용 ]
+
+<풀이>
+# mkdir /hosting/
+# mkdir /samskel/
+# cp /etc/skel/.* /samskel/
+# cp -r /etc/skel/.m* /samskel/
+# mkdir /samskel/Public_html
+# touch /samskel/.sam
+
+# useradd -u 1201 -s /bin/csh -d /hosting/testuser2/ -mk /samskel/ testuser2
+# passwd testuser2
+ 새 암호 : 
+
+-----------------------------------------------------------------------------------------
+[ usermod ] : 기존 생성된 사용자 계정 정보를 변경하는 명령어
+ => 옵션 : useradd 옵션과 동일.
+    -> [-c] : comment 수정.
+    -> [-u] : UID 수정.
+    -> [-l] : 계정명 수정.
+    -> [-g] : GID 수정.
+    -> [-d] : 홈 디렉터리 수정.
+    -> [-s] : 사용하는 Shell 변경.
+	...
+
+<ex 1>
+ # usermod -c 010-1111-1111 itbank2
+ # usermod -s /bin/bash itbank3
+ # usermod -u 1500 itbank4
+ # usermod -l user4 itbank4
+
+<ex 2> 특정 계정 일시적으로 로그인 금지.
+ # tail -5 /etc/shadow
+ # passwd -l itbank1
+ # grep itbank1 /etc/shadow
+
+ # passwd -u itbank1
+
+<ex 3> root를 제외한 모든 계정 로그인 금지.
+ # touch /etc/nologin
+
+ # rm -f /etc/nologin
+
+-----------------------------------------------------------------------------------------
+[ userdel ] : 사용자 계정 삭제.
+ => 옵션 : [-r] 옵션은 홈 디렉터리와 메일함을 같이 삭제.
+
+itbank3:x:1003:1003:testuser:/linux/nor:/bin/bash
+itbank5:x:1005:1005::/home/itbank5:/bin/bash
+
+<Ex>
+# userdel -r itbank3
+# userdel itbank5
+
+-----------------------------------------------------------------------------------------
+[ /etc/group ] : Group의 정보를 담고 있는 파일.
+ => 사용자 계정은 기본적으로 하나의 그룹에 구성원이다.
+ => 사용자 계정을 하나 생성하면 '사용자 이름'='그룹 이름'이 되어 관리가 불편하다.
+
+ # less /etc/group
+
+ itbank:x:1000:itbank
+ itbank1:x:1001:
+ itbank2:x:1002:
+
+ [ itbank ] : 그룹명 필드
+ [   X    ] : 그룹 패스워드 필드
+ [  1000  ] : GID (Group ID) 필드
+ [ itbank ] : 그룹의 구성원 필드
+
+- 사용자 계정 생성시 [-N] 옵션을 사용하면 사용자 이름과 동일한 그룹을 생성하지 않고 해당 사용자를
+  users라는 기본 그룹에 포함시키는 것이 가능하다.
+
+ # useradd -N user10
+ # useradd -N user20
+ # useradd -N user30
+ # tail -3 /etc/passwd
+ # id user10; id user20; id user30
+
+- 일반적으로 사용자 생성시 동일한 이름의 그룹을 생성하는 것이 아니라 Group을 먼저 생성하고 
+  사용자들을 해당 Group에 목적별로 구성원이 되도록 해야 한다.
+
+-----------------------------------------------------------------------------------------
+[ groupadd ] : 그룹 생성
+  => # groupadd [옵션] [생성할 그룹명]
+  => 옵션 : [-g]는 GID를 지정한다.
+           [-r]은 GID를 999보다 작은 숫자로 지정한다.
+
+<Ex>
+ # groupadd sales
+ # groupadd -g 1700 management
+ # groupadd sysadmin
+ # tail -5 /etc/group
+ # id <계정명>  or groups <계정명>
+
+<실습 풀이>
+ # groupadd -g 701 Linux
+ # groupadd -g 702 Windows
+ # groupadd -g 703 AIX
+ # groupadd -g 704 Solaris
+ # tail -4 /etc/group
+
+ # useradd -u 600 -g 701 test1
+ # useradd -u 601 -g 701 test2
+ # useradd -u 602 -g Windows test3
+ # useradd -u 603 -g Windows test4
+ # useradd -u 604 -g 703 test5
+ # useradd -u 605 -g 703 test6
+ # useradd -u 606 -g 704 test7
+ # id test1
+
+----------------------------------------------------------------------------------------
+[ groupmod ] : 그룹 정보 수정
+ => # groupmod [옵션] [그룹명]
+
+---------------------------------------------------------------------------------------
+[ groupdel ] : 그룹 삭제
+ => # groupdel [그룹명]
+
+-----------------------------------------------------------------------------------------
+[ su ] : 작업 중에 일시적으로 다른 사용자 계정 사용.
+
+ <ex>
+ # su - <사용자 계정> / su <사용자 계정>  : 특정 사용자 계정 사용 
+                                        root 계정이 아닌 경우 해당 사용자 패스워드를 입력해야 한다.
+
+ # su    : root 계정 권한 획득 (root계정 패스워드 입력 요구)
+ # su -  : root 계정 권한 획득 (root계정 패스워드 입력 요구) + root 환경설정
+
+----------------------------------------------------------------------------------------
+[ sudo(superuser do / substitute user do) ]
+ => 일반 사용자는 퍼미션이 제한되어 있는 파일이나 명령어를 사용할 수 없다.
+    이 경우 sudo 설정파일(/etc/sudoers)에 등록된 사용자는 root 권한으로 특정 명령어만 사용하는 것이
+    가능하다.
+ => [/etc/sudoers] 파일은 root 계정의 경우도 read(읽기) 권한만 있기 때문에 일반적인 vi 명령어로 
+    수정하는 것이 불가능하다.
+
+	[itbank1@localhost ~]$ ls -l /etc/sudoers
+	-r--r-----. 1 root root 4328 10월 30  2018 /etc/sudoers
+
+ => [/etc/sudoers] 파일을 수정할 수 있는 명령어는 [visudo]이다.
+
+ # visudo
+
+   itbank1 ALL = /sbin/shutdown
+   itbank2 ALL = ALL
+   itbank10 ALL = /sbin/useradd, /bin/passwd
+   itbank11 ALL = NOPASSWD: /sbin/shutdown -r +10, /sbin/shutdown -c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

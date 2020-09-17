@@ -1,0 +1,558 @@
+## Router Interface 종류 ##
+
+[1. LAN 구간 연결 Interface]
+ => 오늘날 LAN 구간에 사용되는 Layer 2 Protocol은 Ethernet 방식이다.
+ => 결과적으로 Router의 경우 LAN 구간을 연결하기 위해 Ethernet 방식의 Interface를 사용한다. 
+ => Ethernet(10Mbps) / FastEthernet(100Mbps) / GigabitEthernet(1Gbps) /
+    10GigabitEthernet / ...
+ => 오늘날에는 광 케이블을 사용하여 이더넷 방식의 장거리 연결도 가능하다. 이를 'Metro Ethernet'
+    서비스라고 한다.
+
+[2. WAN 구간 연결 Interface]
+ => Serial Interface를 사용하여 WAN 구간을 연결할 수 있다.
+ => Layer 2 Protocol에 따라서 물리적인 Interface가 구분되는 LAN 구간과 다르게 WAN 구간의 
+    경우 하나의 Serial Interface에서 [encapsulation] 명령어를 사용하여 L2 Protocol을 
+    선택하는 것이 가능하다. (ex. HDLC/PPP/Frame-relay 등..)
+
+[3. Management 포트]
+ => Device에 새로운 명령어를 입력하거나 혹은 현재 상태를 점검하기 위한 목적의 관리용
+    포트를 의미한다.
+ => Console / AUX 포트가 있다.
+ => 일반적으로 Console 포트를 사용하여 Device에 물리적인 접근 후 설정이 가능하다.
+
+[4. 가상 Interface]
+ => Serial과 FastEthernet 인터페이스는 Cable을 연결할 수 있는 '물리적인 Interface'이다.
+ => 가상 Interface는 Cable을 연결할 수 잇는 물리적인 포트가 존재하지 않는다. 메모리를 할당해서
+    만드는 '논리적 Interface'이다.
+ => Loopback / SVI(Switched Virtual Interface) / ....
+
+ ** Loopback 역할 **
+  1) Test 목적
+  2) Router-ID 목적
+  3) 보안 목적(ex.허니팟)
+      ...
+
+==================================================================================
+## Router 접속 방법 ##
+
+[1. Console 포트 접근]
+ => Router의 Console 포트와 PC의 COM포트(혹은 USB포트)를 Console Cable로 연결하여 직접 
+    접근하는 방식이다.
+ => Console cable을 연결 후 '터미널 프로그램(Putty/xshell/secureCRT..)'을 사용하여
+    Device에 접근하는 것이 가능하다.
+ => Device를 처음 구성하거나 Network 장애로 원격 접근이 불가능한 경우 주로 사용된다.
+
+[2. Remote Access(원격 접근)]
+ => Device가 Network에 연결되어 있고, 원격 접근이 허용되어 있는 경우 원격지에서 Device의
+    IP 주소를 사용하여 원격으로 접근하는 것이 가능하다.
+ => Telnet / SSH / HTTP / HTTPS ...
+
+[3. AUX 포트 접근]
+ => AUX 포트에 Modem을 연결하여 접근하는 것이 가능하다. 하지만 오늘날에는 거의 사용되지 않는
+    방식이다.
+
+================================================================================
+## Cisco IOS Mode ##
+
+- Network Device의 경우도 Device를 운영하기 위한 '운영체제(OS)'가 필요하다.
+  각 벤더마다 자사의 OS를 사용한다.
+
+- Cisco Device(Router, Switch)의 경우 기본적인 운영체제로 'IOS(Internetworking
+  Operating System)'를 사용한다. IOS를 사용하는 Cisco Device들은 모두 동일한 모드와
+  명령어 체계를 사용한다.
+
+- IOS 모드는 다음과 같이 구분된다. (각 모드는 prompt 모양으로 구분이 가능하다.)
+
+[1. EXEC 모드]
+ => [show] 명령어를 사용하여 현재 운영 중인 Device의 상태를 점검하는 것이 가능한 모드이다.
+ => Device의 상태를 파악하는 것은 가능하지만 새로운 설정을 입력하거나 수정하는 것은 불가능하다.
+ => 관리자마다 Privilege level(권한 레벨)을 부여하여 확인할 수 있는 정보를 제한하는 것이 
+    가능하다.(Privilege level 범위는 0 - 15까지이다.)
+ 
+ 1) User 모드 [>]
+  -> 기본적으로 Device에 처음 접속했을 때 User 모드부터 시작이 된다.
+  -> Privilege level이 1이기 때문에 가장 기본적인 정보들만 확인이 가능하다.
+  -> [enable] 명령어를 사용하여 'Privileged 모드'로 이동할 수 있다.
+  -> 'User 모드'와 'Privileged 모드' 사이에는 반드시 Password를 설정해야 한다!!
+
+ 2) Privileged 모드 [#]
+  -> 기본적으로 Privilege level이 15이기 때문에 모든 정보를 확인할 수 있는 모드이다.
+  -> [disable] 명령어를 사용하여 'User 모드'로 이동이 가능하다.
+  -> 모든 정보를 확인하는 것은 가능하지만 실제 Router 설정을 새롭게 입력하거나 변경하는
+     것은 불가능하다. [configure terminal] 명령어를 사용하여 설정 모드로 이동해야만
+     한다.
+
+-----------------------------------------------------------------------------------
+[2. Configuration 모드]
+ => Device에 설정 명령어를 입력하거나 기존 설정을 변경할 수 있는 모드이다.
+ => 다시 'Privilegd 모드(#)'로 이동하기 위해서는 [exit], [Ctrl+c], [Ctrl+z] 등을 입력하면
+    된다.
+ => 기본적으로 'EXEC 모드' 명령어(ex.[show])가 입력되지 않는다. 하지만 'do' 명령어를 'EXEC 
+    모드' 명령어 앞에 입력하면 'Configuration 모드'에서도 사용이 가능하다. 
+    (자동완성(tab) 기능은 지원되지 않는다!)
+
+ 1) Global Configuration 모드 [(config)#]
+  -> '전역 설정' 모드라고 표현하기도 한다.
+  -> Device의 전반적인 관리 설정이 가능하고, 각각의 세부 설정 모드로 이동하는 것이 가능하다.
+  -> 일반적으로 다음과 같은 관리설정이 가능하다.
+     <Ex>
+     Router(config)# hostname Seoul
+     Seoul(config)# enable secret ccna321
+     Seoul(config)# no ip domain lookup
+      => 관리자가 작업하는 동안 User/Privileged 모드에서 한 단어 오타가 발생할 경우 
+         Domain Lookup(DNS 조회)을 수행하지 않도록 하는 명령어.
+      => 작업이 완료되면 [ip domain lookup] 명령어를 사용하여 다시 Domain Lookup
+         기능을 활성화시켜야 한다.
+
+     Seoul(config)# line console 0
+     Seoul(config-line)# exec-timeout 0 0
+      => 관리자가 작업하는 동안 Idle-time을 무한대로 변경하여 명령어를 입력하지 않아도
+         접속을 유지할 수 있게 만든다.
+      => 작업이 완료된 후에는 3-5분 정도의 Idle Time을 부여해야 한다!
+
+     Seoul(config-line)# logging synchronous
+     Seoul(config-line)# password cisco123
+     Seoul(config-line)# login
+     Seoul(config-line)# exit
+
+ 2) Specific Configuration 모드
+  -> Device의 특정 부분에 대해 세부 설정이 가능한 모드이다.
+     <Ex>
+     - Line 모드     [(config-line)#] : Device 접근 및 접근 상태를 제어할 수 있는 모드.
+     - Interface 모드  [(config-if)#] : 특정 Interface에 대한 설정이 가능한 모드.
+     - Router 모드 [(config-router)#] : Dynamic Routing Protocol 설정이 가능한 모드.
+	....
+
+=====================================================================================
+## Router Interface Configuration ##
+
+- Router는 다른 Device와 연결된 Interface에 올바른 대역의 IP 정보를 할당하고,
+  해당 Interface를 활성화시켜야 통신이 가능하다.
+
+ 1. 다른 장치와 연결된 Interface에 들어간다.
+
+ 2. 해당 Interface 역할을 주석으로 입력한다.(Option)
+
+ 3. 해당 Interface에 IP 주소와 Subnet mask를 입력한다.
+
+ 4. 필요한 경우 Layer 2 Protocol / Clock rate / Bandwidth / Delay 등의
+    값을 설정한다.(L2 Protocol과 clock rate는 WAN 구간에서만 설정)
+
+ 5. Interface는 기본적으로 비활성화(shutdown) 상태이다. 활성화 상태로 변경해야
+    한다.(no shutdown)
+
+
+** verify **
+show running-config
+show ip interface brief
+show ip route
+show ip arp
+
+-------------------------------------------------------------------------------------
+Password : cisco123
+Seoul>enable
+Password : ccna321
+Seoul#configure terminal
+
+Seoul(config)#interface fastethernet 0/1
+Seoul(config-if)#description ##Seoul_Sales_Office_Network##
+Seoul(config-if)#ip address 200.100.7.126 255.255.255.192
+Seoul(config-if)#no shutdown
+
+%LINK-5-CHANGED: Interface FastEthernet0/1, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to up
+
+Seoul(config)#interface fastethernet 0/0
+Seoul(config-if)#description ##Seoul_MGR_Office_Network##
+Seoul(config-if)#ip address 200.100.7.142 255.255.255.240
+Seoul(config-if)#no shutdown
+
+%LINK-5-CHANGED: Interface FastEthernet0/0, changed state to up
+%LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/0, changed state to up
+
+Seoul(config)#interface serial 0/0
+Seoul(config-if)#description ##SP_KT_Tel.010-0000-0000##
+Seoul(config-if)#ip address 1.1.100.1 255.255.255.252
+Seoul(config-if)#encapsulation hdlc
+Seoul(config-if)#no shutdown
+
+<SP>
+en
+conf t
+ho SP
+no ip domain loo
+enable secret ccna321
+lin con 0
+ exec-time 0 0
+ logging syn
+ password cisco123
+ login
+!
+interface serial 0/1
+ description ##Customer_A_Seoul_HQ##
+ ip address 1.1.100.2 255.255.255.252
+ encapsulation hdlc
+ no shutdown
+!
+interface serial 0/0
+ description ##Customer_A_Busan_Branch##
+ ip address 1.1.100.5 255.255.255.252
+ encapsulation hdlc
+ clock rate 500000
+ no shutdown
+!
+
+<Busan>
+enable
+configure terminal
+
+hostname Busan
+enable secret ccna321
+no ip domain lookup
+
+line console 0
+ exec-timeout 0 0
+ logging synchronous
+ password cisco123
+ login
+exit
+
+interface fastethernet 0/0
+ description ##Busan_Branch_Office##
+ ip address 150.80.5.190 255.255.255.224
+ no shutdown
+!
+interface fastethernet 0/1
+ description ##Busan_Branch_Server_Farm##
+ ip address 150.80.5.198 255.255.255.248
+ no shutdown
+!
+interface serial 0/1
+ description ##SP_KT_Tel.010-0000-0000##
+ ip address 1.1.100.6 255.255.255.252
+ encapsulation hdlc
+ no shutdown
+!
+==================================================================================
+## Router 설정 저장 ##
+
+- 관리자가 입력한 명령어는 'Running-config'라는 이름으로 휘발성 메모리인 RAM에서 동작한다.
+  때문에 관리자는 설정을 새롭게 입력하거나 혹은 변경 후 반드시 설정 내용을 저장해야 한다.
+  (NVRAM에 'Startup-config'라는 이름으로 저장된다.)
+
+- Cisco Router에서 설정을 저장하는 방법은 다음과 같이 2가지 방식이 있다.
+  주의점은 설정 저장 명령어는 'Privileged 모드(#)'에서 입력하거나 'Configuration 모드'에서
+  입력하는 경우에는 'do'를 사용해야 한다.
+
+ 1) Router# copy running-config startup-config
+            (단축키 : copy run start)
+
+		- or -
+
+ 2) Router# write memory (단축키 : wr)
+
+-----------------------------------------------------------------------------------------
+- Router는 관리자 설정으로 Interface 상태가 활성화(up/up)로 변경되면 해당 Interface의 
+  IP 주소와 Subnet mask를 AND(&) 연산 결과, 즉 Network ID를 구해서 해당 Network
+  대역이 자신의 어떤 Interface와 연결되어 있는지 Routing Table(주소록)에 등록하게 된다.
+
+  결과적으로 Interface까지만 설정이 완료되면 Router는 자신과 '직접 연결된(directly
+  connected) Network' 정보만 Routing Table에 등록하고, 해당 경로까지만 통신이 가능하다.
+  (Router는 목적지 IP에 대한 경로 정보가 자신의 Routing Table 등록되어 있지 않은 경우
+   해당 Packet을 폐기처리한다.)
+
+- 위와 같은 문제를 해결하기 위해서는 관리자가 Interface 설정을 완료 후 'Remote Network 
+  (원격지 네트워크)' 정보를 Routing Table에 추가로 등록해야 한다.
+  Routing Table에 경로를 추가로 등록할 수 있는 방법에는 'Static Route'와 'Dynamic 
+  Routing Protocol'이 있다.
+
+==================================================================================
+## Routing Protocol ##
+
+- L3 Device(ex.라우터)의 주소록인 Routing Table에 Remote Network에 대한 경로 정보를 추가로
+  등록하기 위한 목적의 Routing Protocol이다.
+
+- Routing Table에 경로를 추가로 등록할 수 있는 방법은 다음과 같다.
+
+[1. Static Route(정적 경로)]
+ => 관리자가 직접 Router가 모르는 Remote Network 정보를 하나씩 추가로 등록하는 방식이다.
+ => Static Route의 장.단점은 다음과 같다. 
+
+ 1) 장점 
+  -> Dynamic Routing Protocol에 비해서 장비 리소스(ex.CPU/Memory..)를 적게 사용한다.
+  -> Dynamic Routing Protocol에 비해서 Link 대역폭 사용량을 줄일 수 있다.
+  -> Dynamin Routing Protocol에 비해서 보안상 더 안전하다.
+
+ 2) 단점
+  -> 망의 규모가 커질수록 관리자가 입력할 명령어가 많아진다.
+  -> 목적지로 향하는 경로가 다수 존재할 경우 Best Path(최적 경로)를 관리자가 직접 결정해야 한다.
+  -> Best Path에 장애가 발생할 경우 자동으로 경로 우회가 되지 않는다. 관리자가 명령어를 사용하여
+     경로를 변경해야만 우회가 가능하다.
+  -> 확장성이 떨어진다. 새로운 장비가 추가될 때마다 입력해야할 명령어가 많아진다.
+
+ => Static Route 설정 방식은 다음과 같이 2가지 방식이 있다. 둘 중 하나를 선택하여 명령어를
+    입력하면 된다.
+
+ 1) 자신의 출구 Interface 사용
+  -> Router(config)# ip route <목적지 Network> <Netmask> <출구 Interface>
+     <Ex>
+     Seoul(config)# ip route 150.80.5.160 255.255.255.224 serial 0/0
+
+				- or -
+ 2) Next-hop IP 주소 사용
+  -> Router(config)# ip route <목적지 Network> <Netmask> <Next-hop IP 주소>
+     <Ex>
+     Seoul(config)# ip route 150.80.5.160 255.255.255.224 1.1.100.2
+
+
+- Static Route는 위의 설정 방법 중 하나를 선택하여 명령어를 입력하게 된다.
+  둘 중 더 효율적인 것은 '자신의 출구 Interface 사용' 방식이다. 이유는 'Next-hop IP 주소 사용'
+  방식의 경우 출구 Interface를 찾기 위해 자신의 Routing Table을 한번 더 검색하는 'Recursive
+  lookup(재귀적 검색)'을 수행하기 때문이다.
+
+- Point-to-Point 네트워크 구간이 아닌 Switch를 사용하는 Multi-Access 네트워크 환경에서는
+  '자신의 출구 Interface 사용' 방식이 아닌 'Next-hop IP 주소' 방식을 사용해야 안전하게 통신이
+  가능하다.
+
+- 최근버전의 IOS의 경우 2가지 방식을 혼합하여 사용하는 것이 가능하다.
+
+  Router(config)# ip route <목적지 Network> <Netmask> <출구 Interface> <Next-hop IP>
+  <Ex>
+  Router(config)# ip route 1.1.1.0 255.255.255.0 fastethernet 0/0 1.1.100.2
+
+------------------------------------------------------------------------------------
+** Default-Route(0.0.0.0/0) **
+
+- Router는 수신한 Packet의 목적지 IP 주소와 Routing Table을 비교하여 Best Path를 선택한다.
+  만약 목적지 IP 주소로 향하는 경로 정보가 Routing Table에 등록되어있지 않은 경우 해당 Packet을
+  폐기처리한다.
+
+  하지만 Internet 망에 연결된 모든 Network Prefix는 약 70-80만줄 정도이다.
+  이 모든 정보를 Router의 Routing Table에 등록하는 것은 불가능하다.
+
+- 위와 같은 문제를 해결하기 위해서는 'Default-Route(0.0.0.0/0)'를 사용해야 한다.
+  'Default-Route(0.0.0.0/0)'는 모든 IP 주소가 포함되어 있는 경로 정보이기 때문에 Router가 
+  목적지 IP 주소에 대한 세부 경로 정보를 모르는 경우에도 다음 Router에게 전송하는 것이 가능하다.
+
+- 'Default-Route(0.0.0.0/0)'는 'Static Route'와 'Dynamic Routing Protocol'을 사용하여
+  Routing Table에 등록하는 것이 가능하다.
+
+   Route(config)# ip route 0.0.0.0 0.0.0.0 {자신의 출구 Interface | Next-hop IP 주소}
+ 
+-------------------------------------------------------------------------------------
+[2. Dynamic Routing Protocol]
+ => 각 Router가 자신과 연결된(Connected) Network 정보를 인접한 상대방 Router에게 광고하고,
+    이를 수신한 Router는 해당 Network 정보를 자신의 Routing Table에 추가로 등록하는 방식이다.
+ => Dynamic Routing Protocol의 장.단점은 Static Route의 장.단점을 반대로 생각하면 된다.
+
+- Dynamic Routing Protocol의 종류는 다양하고 다음과 같이 분류가 가능하다.
+
+[1. AS(Autonomous System)에 따른 분류]
+ 1) IGP(Interior Gateway Protocol)
+     -> 동일 AS 안에서 구성되는 Routing Protocol.(RIP/EIGRP/OSPF/통합IS-IS..)
+ 2) EGP(Exterior Gateway Protocol)
+     -> 서로 다른 AS 사이에서 구성되는 Routing Protocl.(BGPv4 / BGPv4+)
+
+[2. 사용되는 알고리즘에 따른 분류]
+ 1) Distance Vector
+     -> Bellman-Ford 알고리즘 : RIP / IGRP
+ 2) Advance Distance Vector
+     -> DUAL(Diffusing Update Algorithm) : EIGRP
+ 3) Link-State
+     -> SPF(Shortest Path First, 다익스트라) 알고리즘 : OSPF / 통합 IS-IS
+
+[3. Classful/Classless에 따른 분류]
+ 1) Classful 방식 : RIPv1 / IGRP
+ 2) Classless 방식 : 그 외 나머지(RIPv2 / EIGRP / OSPF / 통합IS-IS..)
+
+=================================================================================
+[1. Distance Vector]
+
+- Distance Vector 계열의 Routing Protocol이 설정된 각 Router들은 전체 Topology(망 구성도)
+  를 이해할 수 없다. 각 Router들은 특정 목적지 Network까지의 거리(Distance)와 방향(Vector)에
+  대한 정보만 알고 Packet을 전송하게 된다.
+
+- 사람이 지도 없이 이정표를 보고 길을 찾아가는 방식에 비유할 수 있다.
+
+- Bellman-Ford 알고리즘을 사용.
+
+- RIPv1/RIPv2(표준)와 IGRP(Cisco 전용)가 Distance Vector 계열에 포함된다.
+
+- Distance Vector의 특징은 다음과 같다.
+
+ 1) Periodic Update(주기적 Update)를 수행한다.   
+     -> RIP : 약 30초  /  IGRP : 약 90초
+
+ 2) Hop-Count 제한이 존재한다.
+     -> RIP : 최대 15 hop (16부터는 도달 불가능)
+     -> IGRP: 기본 100 hop (최대 255로 확장 가능)
+
+ 3) Loop 발생의 위험이 있다.
+     -> 각 Router가 전체 Topology(구성도)를 이해할 수 없고, 느린 Convergence(수렴) 시간을
+        갖기 때문에 Loop가 발생되는 경우가 있었다.
+     -> 오늘날 IOS의 경우 RIP을 설정하게 되면 다양한 Loop 방지 솔루션들이 기본적으로 동작한다.
+        (Split-horizon / Route Poisoning / Triggered Update / Hold-down timer..)
+
+ 4) Auto-Summary(자동 축약)를 수행한다.
+     -> Router가 Classless 네트워크 정보를 광고할 때 자동으로 Classful로 묶어서 광고하는
+        기능이다. 오늘날에는 관리자가 [no auto-summary] 명령어를 사용하여 비활성화시켜야 한다.
+
+----------------------------------------------------------------------------------
+[2. Advance Distance Vector]
+
+- Cisco는 자사의 Distance Vector 계열의 Routing Protocol인 IGRP를 E.IGRP로 개선시켰고,
+  해당 Routing Protocol의 분류를 Advance Distance Vector로 구분하였다.
+  (Cisco 전용 -> 표준 프로토콜 변경)
+
+- DUAL(Diffusing Update Algorithm) 사용.
+
+- Distance Vector가 발전된 형태로 각 Router가 Link-State처럼 전체 Topology(구성도)를
+  이해할 수는 없다. 하지만 Router들은 특정 목적지 Network까지의 'Best Path(최적 경로)'와
+  'Loop가 없다고 확인된 Backup Path(후속 경로)'를 자신의 'Topology Table'에 등록할 수 있다.
+
+  평상시에는 Best Path(최적 경로) 정보만 자신의 Routing Table에 등록하여 Packet 전송 경로로
+  사용하고, 만약 해당 경로에 장애가 발생할 경우 즉시 'Loop가 없다고 확인된 Backup Path'를 
+  Routing Table에 등록하여 사용하는 것이 가능하다. (Fast Convergence(수렴)가 가능하다.)
+
+- Advance Distance Vector의 특징은 다음과 같다.
+
+ 1) Periodic Update(주기적 Update)를 수행하지 않는다.   
+     -> 인접 Router와 Hello 메시지를 교환하여 EIGRP Neighbor 관계를 형성 후 자신이 알고 
+        있는 모든 정보를 상대방 Router에게 Update한다.
+     -> 그 후 주기적인 Update는 수행하지 않고 특정 Network에 변화가 발생할 경우, 그 즉시
+        변화가 발생한 부분에 대해서만 Update를 수행한다.(Flush Update / Partial Update)
+     -> 상대방 Router와 주기적은 Update는 수행하지 않지만 가벼운 Hello 메시지를 주기적으로
+        교환하여 Keepalive를 체크한다.
+
+ 2) Hop-Count 제한이 존재한다.
+     -> EIGRP: 기본 100 hop (최대 255로 확장 가능)
+
+ 3) Loop 발생의 위험이 없다. (100% Loop Free)
+     -> DUAL(Diffusing Update Algorithm)을 사용하여 Loop 문제를 해결하였다.
+     -> 출발지 Router는 특정 목적지 Network로 향하는 'Best Path(최적 경로)'와 'Loop가 없다고
+        확인된 Backup Path'를 자신의 Topology Table에 등록하게 된다.
+     -> 만약 'Loop가 없다고 확인된 Backup Path'가 존재하지 않는 경우에는 Best Path 장애 발생시
+        EIGRP Neighbor 라우터들에게 Query 패킷을 전송하여 해당 경로에 Loop가 없다는 것을 확인
+        받은 후 해당 경로를 Routing Table에 등록하게 된다.
+     -> 추가적으로 'Split-horizon'과 같은 Loop 방지 솔루션을 같이 사용한다.
+
+ 4) Auto-Summary(자동 축약)를 수행한다.
+     -> Router가 Classless 네트워크 정보를 광고할 때 자동으로 Classful로 묶어서 광고하는
+        기능이다. 오늘날에는 관리자가 [no auto-summary] 명령어를 사용하여 비활성화시켜야 한다.
+     -> 최근 IOS 버전인 15.x 의 경우 [no auto-summary] 명령어가 기본적으로 입력되어 있다.
+
+----------------------------------------------------------------------------------
+[3. Link-State]
+
+- Link-State 계열의 Routing Protocol에는 OSPF와 통합 IS-IS가 있다.
+  SPF(Shortest Path First, 다익스트라) 알고리즘을 사용한다.
+
+- Distance Vector 계열의 Routing Protocol들과 다르게 Link-State 계열의 Routing Protocol
+  이 설정된 장치들은 전체 Topology(구성도)를 이해할 수 있다.
+   => 사람이 지도를 들고 길을 찾아가는 방식에 비유할 수 있다.
+
+- Link-State 계열의 Routing Protocol이 설정된 Router들은 자신의 Link(= interface)의 
+  상태(State)를 LSA(Link State Advertisement)라는 형태의 정보로 만들어서 동일 영역(Area)에
+  포함된 모든 Router들과 교환하게 된다.
+
+  이를 수신한 Router들은 자신의 'Link-State Database(LSDB)'에 수신한 LSA 정보를 저장 후
+  SPF 알고리즘을 사용하여 Best Path를 결정한다. 해당 Best Path를 자신의 Routing Table에
+  등록하여 Packet 전송 경로로 사용하게 된다.
+
+- Link-State 특징은 다음과 같다.
+
+ 1) Periodic Update(주기적 Update)를 수행하지 않는다.   
+     -> 인접 Router와 Hello 메시지를 교환하여 OSPF Neighbor 관계를 형성 후 자신이 알고 
+        있는 모든 정보(LSA)를 상대방 Router에게 Update한다.
+     -> 그 후 주기적인 Update는 수행하지 않고 특정 Network에 변화가 발생할 경우, 그 즉시
+        변화가 발생한 부분에 대해서만 Update를 수행한다.(Flush Update / Partial Update)
+     -> 상대방 Router와 주기적은 Update는 수행하지 않지만 가벼운 Hello 메시지를 주기적으로
+        교환하여 Keepalive를 체크한다.
+
+ 2) Hop-Count 제한이 없다.
+
+ 3) Loop 발생의 위험이 없다. (100% Loop Free)
+     -> 동일 Area에 포함된 모든 Router들의 LSA 정보를 교환하여 전체 Topology(구성도)를
+        이해하고 있기 때문에 Loop가 발생될 위험이 있는 경로는 사용하지 않는다.
+
+ 4) Auto-Summary(자동 축약)를 수행하지 않는다.
+     -> [no auto-summary] 명령어를 입력할 필요가 없다!
+
+===================================================================================
+## Router의 Best Path(최적 경로) 선택 조건 ##
+
+- Router는 목적지 Network로 향하는 경로가 다수 존재할 경우 Best Path를 선택하고, 
+  해당 경로만 Routing Table에 등록하여 Packet 전송 경로로 사용한다.
+
+- Static Route의 경우는 관리자가 직접 Best Path를 결정 후 해당 경로를 사용하도록
+  명령어를 입력한다.
+  Dynamic Routing Protocol의 경우는 다음 조건들을 비교하여 Best Path를 출발지
+  Router가 자동으로 결정하게 된다.
+
+[1. AD(Administrative Distance) 값이 낮은 경로]
+ => 각 Routing Protocol마다 정해져 있는 신뢰도를 의미한다. AD 값이 가장 낮은 경로가
+    Best Path로 결정된다.
+ => 주로 목적지로 향하는 경로가 다수 존재하고, 해당 경로마다 서로 다른 Routing Protocol을
+    사용하는 경우 AD 값을 비교하여 Best Path를 선택한다.
+	- Connected      : 0
+	- Static         : 1
+	- EIGRP(축약)     : 5
+	- eBGP           : 20
+	- EIGRP(내부)     : 90
+	- IGRP           : 100
+	- OSPF           : 110
+	- 통합 IS-IS      : 115
+	- RIP            : 120
+	- EIGRP(외부)     : 170
+	- iBGP           : 200
+
+
+[2. Metric이 낮은 경로]
+ => AD 값으로 Best Path를 선택할 수 없는 경우 Metric 값을 비교하여 Best Path를 결정한다.
+ => 주로 다수의 경로가 동일한 Routing Protocol로 구성되어 있는 경우 Metric 값을 비교하여
+    Best Path를 결정하게 된다.
+ => 각 Routing Protocol 마다 사용되는 Metric 조건이 다음과 같이 다르다.
+
+	- RIP   : Hop-Count 사용. (속도 X)
+	- EIGRP : Bandwidth / Delay / Reliability / Load를 특정 공식에
+                  대입한 결과 값을 사용.
+	- OSPF  : Cost 사용. (Cisco 라우터의 경우 10^8/bandwidth 공식 사용)
+
+- 일반적으로 다수의 경로가 존재하는 경우에는 AD 값과 Metric을 비교하여 Best Path를 하나만 선택하여
+  Routing Table에 등록하게 된다.
+ 
+  하지만 AD 값과 Metric이 모두 동일한 경우에는 Best Path를 선택할 수 없기 때문에 양쪽 경로 모두를
+  Routing Table에 등록하게 된다. 
+   => 이러한 경우를 [Equal-Cost Load-Balancing]이라고 표현한다.
+
+R       1.1.100.8 [120/1] via 1.1.100.1, 00:00:22, Serial0/0
+                  [120/1] via 1.1.100.5, 00:00:20, Serial0/1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

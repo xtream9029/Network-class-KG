@@ -1,0 +1,503 @@
+[pwd] : print working directory
+ => 현재 작업 중인 디렉터리 경로를 확인.
+
+[cd] : change directory
+ => 경로를 변경할 수 있는 명령어.
+ => 사용 형식 : cd [경로]
+ => 상대 경로 : .. (상위 디렉터리를 의미)
+               . (현재 디렉터리를 의미)
+
+[ls] : list
+ => 특정 디렉터리의 내용을 출력하는 명령어.
+ => 사용 형식 : ls [경로]
+    옵션 사용 : ls [옵션] [경로]
+      -l    : 자세한 정보 출력
+      -a    : 모든 파일 보기(숨김파일(.)도 표시)
+      -t    : 파일 수정 시간 순서로 출력
+      -h    : 파일 크기를 사람이 인식하기 편한 형태로 표시
+      -r    : 파일 출력결과를 역순으로 확인
+      -R    : 하위 경로의 정보까지 모두 출력
+
+=========================================================================================
+** Linux 주요 디렉터리 정리 **
+
+1.  /     => 루트 디렉터리. 모든 파일과 디렉터리의 시작점.
+2.  /bin  => 모든 사용자가 사용할 수 있는 명령어(바이너리 실행파일)가 들어있다.
+3.  /sbin => 시스템 관리자가 사용할 수 있는 명령어(바이너리 실행파일)가 들어있다.
+4.  /boot => 리눅스 부팅과정에 필요한 파일들과 커널이 들어있다.
+5.  /etc  => 시스템이나 사용자를 위한 '환경설정 파일'과 서비스들을 위한 '스크립트'가
+             들어있다.
+6.  /root => 관리자의 홈 디렉터리.
+7.  /home => 관리자 이외의 사용자 홈 디렉터리가 들어있다.
+8.  /dev  => 장치 파일이 들어있는 디렉터리.
+9.  /proc => 프로세스에 관련된 파일이 들어있는 디렉터리.
+10. /lib  => 각종 언어를 위한 라이브러리 파일들이 있는 디렉터리.
+11. /opt  => 추가적인 소프트웨어를 설치할 때 사용. (주로 상업용 소프트웨어)
+12. /var  => log와 같이 변경될 수 있는 파일들이 저장되는 디렉터리.
+13. /tmp  => 임시파일들이 저장되는 디렉터리.
+    ...
+
+==========================================================================================
+[mkdir] : make directory
+ => 디렉터리 생성 명령어.
+ => [-p] 옵션을 사용하면 상위 디렉터리도 같이 생성한다.
+
+<예제>
+cd /home/itbank/
+mkdir ./a/
+mkdir ./a/b/
+mkdir ./a/b/c/
+ls -ld ./a/b/c/
+
+mkdir ./a/b/c/d/e/      => 부모 경로가 없기 때문에 생성 X.
+mkdir -p ./a/b/c/d/e/
+ls -ld ./a/b/c/d/e/
+
+mkdir ./test1/ ./test2/ => 동시에 다수의 디렉터리를 생성할 수 있다.
+ 
+----------------------------------------------------------------------------------------
+[rmdir] : remove directory
+ => 디렉터리를 삭제하는 명령어.
+ => 디렉터리 하위에 파일이나 디렉터리가 없어야 삭제 가능.
+ => [-p] 옵션을 사용하면 상위 디렉터리도 삭제가 가능.
+
+rmdir ./test1/ ./test2/
+
+rmdir ./a/b/c/d/e/    => 가장 마지막 디렉터리만 삭제된다.
+ls -ld ./a/b/c/d/e/
+ls -ld ./a/b/c/d/
+
+rmdir -p a/b/c/d/    => 상위 디렉터리까지 모두 삭제.
+ls -l
+
+----------------------------------------------------------------------------------------
+[touch] 
+ => 빈 파일을 생성하거나, 이미 존재하는 파일의 경우 작업 시간을 변경.
+ => [touch] 명령어로 파일 생성 후 시간을 확인해보고, 다시 [touch] 명령어를 사용하여
+    시간이 변경되는 것을 확인해보자.
+
+----------------------------------------------------------------------------------------
+[cp] : copy
+ => 파일이나 디렉터리를 복사할 수 있는 명령어.
+ => cp [option] [복사 대상] [붙여넣기 경로]
+
+1. 원본파일명과 동일한 이름으로 복사하는 경우에는 파일명을 생략해도 된다.
+
+mkdir /backup/
+cp /etc/inittab /backup/
+cp /etc/login.defs /backup/
+cp /boot/grub2/grub.cfg /backup/
+
+<실습 1: /backup/ 경로 안에 있는 파일들을 /home/itbank/ 경로로 복사>
+ 1) grub.cfg는 절대 경로            : cp /backup/grub.cfg /home/itbank/grub.cfg
+ 2) inittab은 상대 경로             : cp /backup/inittab ./
+ 3) loin.def은 login 파일명으로 변경 : cp /backup/login.defs ./login
+
+<실습 2: /home/itbank/안에 있는 다음 파일들을 /home/test/c/ 디렉터리로 복사> 	
+			 cd /home/
+			 rm -r test/c/d/
+			 mkdir -p /home/test/c/
+			 ls -ld /home/test/c/
+			 cd /home/itbank/
+		                
+ 1) grub.cfg는 상대 절대	        : cp ./grub.cfg /home/test/c/grub.cfg	 
+ 2) inittab은 절대 상대	        : cp /home/itbank/inittab ../test/c/	 
+ 3) login은 상대 상대 login.defs로	: cp ./login ../test/c/login.defs
+
+<실습 3: /backup/안에 있는 파일들을 /home/test/c/d/ 디렉터리로 복사>]
+			          mkdir /home/test/c/d/
+ 1) grub.cfg는 절대 절대           : cp /backup/grub.cfg /home/test/c/d/grub.cfg	
+ 2) inittab 상대 절대             : cp ../../backup/inittab /home/test/c/d/		
+ 3) login.defs은 상대 상대 login로 : cp ../../backup/login.defs ../test/c/d/login
+
+- 주의 사항 -
+1. 작업위치는 /home/itbank/
+2. 작업 후 ls -l 명령어로 확인
+3. 오타 주의
+
+Ex 1> /home/test/c/d/ 안에 있는 모든 파일들은 /home/itbank/a/b/ 디렉터리에 한 줄로 복사하시오.
+ mkdir -p /home/itbank/a/b/
+ cp /home/test/c/d/grub.cfg /home/test/c/d/inittab /home/test/c/d/login ./a/b/
+ ls -l ./a/b/
+
+Ex 2> 와일드 카드 "*"를 사용하여 위의 작업을 다시 수행해보자.
+ rm /home/itbank/a/b/grub.cfg /home/itbank/a/b/inittab /home/itbank/a/b/login
+ ls -l ./a/b/
+ cp /home/test/c/d/* ./a/b/
+
+Ex 3> 와일드 카드를 사용한 Copy 연습. (/home/itbank/a/b/ ==> /home/test/)
+ ls -l /home/test/
+ cp ./a/b/l*n /home/test/
+
+ ls -l /home/test/
+ cp ./a/b/gru?.cfg /home/test/
+
+ ls -l /home/test/
+ cp ./a/b/[iI1]nittab /home/test/
+
+Ex 4> 디렉터리 복사
+cp /backup/ ./
+cp: omitting directory `/backup/' => 디렉터리는 그냥 복사가 안된다!
+
+cp -r /backup/ ./
+
+-----------------------------------------------------------------------------------------
+[mv] : move
+ => 파일이나 디렉터리를 이동시키는 경우 사용. (혹은 이름 변경)
+ => mv [-option] [이동시킬 파일/디렉터리] [이동할 목적지]
+ => 디렉터리를 이동시키는 경우 cp와 다르게 [-r] 옵션이 필요없다!
+ => 원본을 이동시키기 때문에 사용시 주의해야 한다!
+
+<Ex1>
+/backup/ 디렉터리에 있는 파일들을 /home/itbank/a/ 디렉터리로 이동시키자.
+ mv /backup/inittab /home/itbank/a/
+ mv ../../backup/grub.cfg ./a/
+ mv /backup/login.defs ./a/login
+
+<Ex2>
+/home/itbank/a/로 이동시킨 3개의 파일을 다시 /backup/ 디렉터리로 이동시키자.(한줄)
+그 후 login 파일명을 login.defs로 변경하시오. (mv는 이름 변경하는 경우에도 사용)
+ mv ./a/grub.cfg ./a/login ./a/inittab /backup/
+ mv /backup/login /backup/login.defs
+
+<EX3> 
+/backup/에 있는 모든 파일을 /home/itbank/a/ 디렉터리로 이동 후 /backup/ 디렉터리도
+/home/itbank/a/로 이동시키자.
+
+ mv /backup/* ./a/
+ mv /backup/ ./a/   => [cp]와 다르게 [-r] 옵션이 필요가 없다!
+
+ ls -l ./a/
+
+-----------------------------------------------------------------------------------------
+[rm] : remove
+ => 파일이나 디렉터리를 삭제하는 명령어.
+ => [rm] 명령어는 기본적으로 [-i] 옵션과 묶여있다. (삭제 여부를 확인한다.)
+ => [-f] 옵션을 사용할 경우 삭제 여부를 확인하지 않는다. (주의해서 사용해야 한다!)
+ => 디렉터리를 삭제하는 경우 [-r] 옵션을 사용해야 한다!
+
+<Ex1>
+/home/test/c/d/ 디렉터리 안에 있는 파일들을 하나씩 삭제해보자.
+(삭제 여부 확인시 그냥 엔터는 'no'를 의미한다.)
+  rm /home/test/c/d/grub.cfg
+  y
+  rm /home/test/c/d/login
+  y
+  rm -f /home/test/c/d/inittab   => [-f] 옵션, 삭제 여부 확인 X.
+  ls -l /home/test/c/d/
+
+<Ex2>
+[rm] 명령어를 사용하여 /home/test/c/ 디렉터리를 삭제해보자.
+  rm -rf /home/test/c/           => [-rf] 옵션을 같이 사용하는 경우 주의해야 한다!
+
+-----------------------------------------------------------------------------------------
+실습 1> 
+0) 선행작업 : mkdir -p /home/test/c/d/
+1) /home/itbank/a/backup/디렉터리에 /home/itbank/a/ 밑에 있는 3개의 파일을 이동.
+   (grub.cfg, inittab, login.defs)
+2) /home/itbank/a/backup/디렉터리를 / 밑으로 이동.
+3) /backup/ 안에 linux/라는 디렉터리를 만든 후 /home/test/c/d/ 디렉터리 안에 복사.
+4) /backup/ 디렉터리를 /home/test/c/로 이동.
+
+ mkdir -p /home/test/c/d/
+ mv ./a/grub.cfg ./a/inittab ./a/login.defs ./a/backup/
+ mv ./a/backup/ /
+ mkdir /backup/linux/
+ cp -r /backup/linux/ ../test/c/d
+ mv /backup/ ../test/c/
+
+<실습 2>
+/home/itbank/ 안에 있는 파일들을 삭제 여부 확인하면서 삭제하기.(디렉터리 삭제 X)
+ [root@localhost itbank]# rm grub.cfg inittab login
+ rm: remove 일반 파일 `grub.cfg'? y
+ rm: remove 일반 파일 `inittab'? y
+ rm: remove 일반 파일 `login'? y
+ [root@localhost itbank]# 
+ [root@localhost itbank]# ls -l /home/itbank/
+ 합계 0
+ drwxr-xr-x. 3 root root 15  7월 22 14:54 a
+ drwxr-xr-x. 2 root root 55  7월 22 13:14 backup
+
+<실습3>
+/home/itbank/backup/ 안에 있는 파일들을 삭제 여부 확인 없이 삭제.
+ [root@localhost itbank]# rm -f ./backup/*
+ [root@localhost itbank]# ls -l /home/itbank/backup/
+ 합계 0
+
+<실습4>
+/home/test/c/ 디렉터리 삭제.(안에 있는 모든 파일들 포함)
+ [root@localhost itbank]# rm -rf ../test/c/
+ [root@localhost itbank]# ls -ld /home/test/c/
+ ls: cannot access /home/test/c/: 그런 파일이나 디렉터리가 없습니다
+
+-------------------------------------------------------------------------------------
+[alias]
+ => 별칭을 사용하여 작업의 효율성을 높이는 것이 가능하다.
+ => [alias] 명령어 사용하면 등록된 별칭들을 확인할 수 있다.
+ => 별칭은 쉘 세션이 종료되면 사라진다. 지속적으로 사용하기 위해서는 로그인시 사용되는
+    환셜 스크립트를 변경해야 한다.
+ => 일반적으로 사용되고 있는 명령어를 별칭으로 사용해서는 안된다. 
+
+<Ex>
+alias altest='cd /usr; ls; cd ~'
+alias 1=clear
+
+ => alias 설정을 해제하는 명령어는 [unalias]이다.
+
+<Ex>
+alias 1=clear
+type 1            => alias 확인
+
+unalias 1         => 해제
+type 1            => 확인
+
+------------------------------------------------------------------------------------
+## Remote Access(원격 접근) ##
+
+- 실제 운영중인 서버는 직접 접근해서 설정을 하는 것보다 원격으로 접근하는 경우가 일반적이다.
+  원격 접근을 하기 위해서는 다음과 같은 내용이 선행되어야 한다.
+   1) Network 도달성(Client PC <--> Server).
+   2) 원격 접근 서비스(Telnet/SSH..) 설치 및 접근 허용.
+
+** 리눅스에서 프로그램(패키지) 설치 **
+- 초창기 리눅스에서는 프로그램을 설치하는 것이 어려웠다. 이 문제를 해결하고자 'Redhat' 사에서
+  windows의 [setup.exe] 파일과 유사한 설치 파일을 만들었다. 이러한 파일의 확장자는 [~.rpm]이고,
+  이를 패키지라고 부른다.
+- 과거에는 설치하고자하는 패키지를 DVD 혹은 Internet에서 사용자가 직접 검색 후 다운로드해야만 했다.
+  오늘날에는 [yum] 명령어를 사용하면 자동으로 검색 후 다운로드 및 설치까지 진행할 수 있다.
+  ([yum] 명렁어를 사용하면 자동으로 '저장소(Repository)'에서 설치할 패키지 파일을 다운로드한다.)
+
+[1. Telnet 구성]
+ #rpm -qa telnet-server        => 텔넷 서버 설치 확인.
+ #yum -y install telnet-server => 텔넷 서버 설치. (ping 8.8.8.8)
+ #rpm -qa telnet-server 
+
+ #systemctl start telnet.socket
+ #systemctl status telnet.socket
+ #systemctl enable telnet.socket
+
+ #firewall-config              => 방화벽에서 telnet 접근 허용
+
+- windows 7에서 [appwiz.cpl]에서 텔넷 클라이언트 설치 후 접속 확인.
+  기본적으로 root 계정은 보안상 허용되지 않고, 일반 사용자 계정(itbank)은 접근이 허용된다.
+
+- Telnet은 TCP 포트 23번 사용하고, 평문 방식으로 통신한다.(보안적으로 사용을 권장하지 않는다!)
+  오늘날에는 암호화 통신을 하는 SSH 사용을 권장하고 있다.
+
+
+[2. Open-SSH 구성]
+ #rpm -qa openssh-server 
+ #systemctl status sshd
+ #firewall-config
+  => 기본적으로 CentOS7의 경우 SSH가 설치/구동/방화벽 허용이 되어있다.
+    
+- Telnet과 다르게 windows에서는 CMD 창이 아닌 SSH 접속 프로그램이 필요하다.
+  SSH는 TCP 포트 22번 사용, 송수신하는 모든 패킷들이 암호화되어 있기 때문에 보안상 안전하다.
+  
+- Telnet/SSH는 CLI 환경에서만 작업이 가능하다. 원격으로 GUI 환경 접속이 가능한 방법으로는 
+  VNC가 있다. 하지만 속도가 느리고 비효율적이기 때문에 많이 사용되지 않는다.
+
+
+[3. FTP(File Transfer Protocol) 구성]
+ - 리눅스에서 사용되는 FTP 관련 패키지는 다양하다.
+   리눅스1 수업에서는 VSFTPD를 사용.
+
+ # rpm -qa vsftpd
+ # yum -y install vsftpd
+ # rpm -qa vsftpd
+
+ # systemctl status vsftpd
+ # systemctl start vsftpd
+ # systemctl enable vsftpd
+
+ # firewall-cmd --zone=public --list-all => 방화벽 동작 확인
+ # firewall-cmd --permanent --add-service=ftp
+ # firewall-cmd --reload
+ # firewall-cmd --zone=public --list-all => FTP 서비스 추가 허용 확인.
+
+- Windows 7에서 FTP Client SW(ex.Filezila 등)를 사용하여 접속하는 것이 가능하다.
+  (기본적으로 root 계정은 허용되지 않는다.)
+  itbank 사용자 계정의 경우 해당 계정의 Permission(권한)에 따라 작업이 제한된다.
+
+--------------------------------------------------------------------------------
+## 문서 내용 출력 명령어 ##
+
+ 1) cat / head / tail 비교
+  <Ex> 
+  cat /etc/passwd       => 파일 내용 전체 출력.
+  
+  head /etc/passwd      => 파일 내용을 위에서부터 기본 10줄 출력.
+  head -n 5 /etc/passwd => [-n] 옵션을 사용하여 출력 라인 수를 지정할 수 있다.
+
+  tail /etc/passwd       => 파일 내용을 아래에서부터 기본 10줄 출력.
+  tail -n 15 /etc/passwd => [-n] 옵션을 사용하여 출력 라인 수를 지정할 수 있다.
+
+ 2) more : 화면 단위로 끊어서 출력
+  <Ex>
+  more /etc/passwd
+   => 출력을 얼마나 했는지 %로 표시.
+   => 방향키를 사용하여 위치를 변경할 수 없다.
+   => 파일만 가능. (디렉터리 목록에 사용 X)
+
+ 3) less : 화면 단위로 끊어서 출력(more보다 발전된 명령어)
+  <Ex>
+  less /etc/passwd
+   => 출력을 얼마나 했는지 %로 표시하지 않는다.
+   => 방향키를 사용하여 위치를 변경할 수 있다.
+   => g는 텍스트 파일의 처음으로 이동.
+   => G는 텍스트 파일의 마지막으로 이동.
+   => [/문자열]로 특정 문자열을 검색할 수 있다.
+   => 디렉터리도 사용 가능하다.
+   => q는 종료.
+       ...
+
+ 4) nl : 줄번호를 활성화 후 출력.(디렉터리 대상 사용 X)
+   <ex>
+   nl /etc/passwd
+
+ 5) grep : 특정 패턴과 일치하는 라인만 출력. (grep [패턴] [파일])
+   <ex>
+   grep root /etc/passwd
+
+------------------------------------------------------------------------------------
+## 파이프라인 ##
+
+- 특정 명령어의 '표준출력'을 다른 명령어로 '표준입력'으로 연결할 수 있는 기능이다.
+
+Ex 1> 페이지 구분 출력
+ ls -l /etc/ | more
+ ls -l /etc/ | less
+
+Ex 2> 여러 명령어 동시 사용
+ ls -l /etc/ | nl | less 
+  => [ls -l /etc/ | less | nl] 출력 결과는 서로 다르다. 
+
+Ex 3> 패턴과 일치하는 라인 출력
+ ls -l /bin/ | grep zip
+ cat /etc/passwd | grep root
+ ps -ef | grep ftp
+
+------------------------------------------------------------------------------------
+## I/O 리다이렉션 ##
+
+- '표준입력(stdin)'은 키보드, '표준출력(stdout)'은 모니터 출력이 기본값이다. 
+  이를 I/O 리다이렉션 기호를 사용하여 변경하는 것이 가능하다.
+
+Ex 1> 표준출력 리다이렉션
+ # ls -l /usr/bin/ > ls-output.txt
+ # ls -l
+ # less ls-output.txt
+
+Ex 2> 기존 파일에 내용 추가
+ # cat /etc/passwd > ls-output.txt
+ # less ls-output.txt
+   => 기존 파일 내용이 사라지고 덮어쓰기가 된다.
+   => 파일 내용을 덮어쓰는 것이 아니라 기존 파일 내용에 이어서 작성하는 경우에는 >> 기호를 사용한다.
+
+ # ls -l /usr/bin/ >> ls-output.txt
+ # less ls-output.txt
+
+Ex 3> 파일 병합
+ # cat /etc/yum.conf
+ # cat /etc/yum.conf /etc/passwd > output2.txt
+ # less output2.txt
+
+---------------------------------------------------------------------------------------
+** 시간 및 날짜 관련 명령어 **
+
+[root@localhost ~]# cal
+[root@localhost ~]# cal 2019
+[root@localhost ~]# cal 05 2017
+
+[root@localhost ~]# clock
+2019년 07월 24일 (수) 오후 03시 14분 21초  -0.174697 seconds
+
+[root@localhost ~]# date
+2019. 07. 24. (수) 15:13:56 KST
+
+[root@localhost ~]# date 010112402017
+2017. 01. 01. (일) 12:40:00 KST
+ => [date] 명령어를 사용하여 시간을 수동으로 설정하는 것이 가능하다.
+    하지만 일반적인 경우 수동으로 시간을 설정하는 것이 아니라 'NTP(Network Time Protocol)'를 
+    사용하여 Time Server로부터 시간을 동기화 받는다.
+
+[root@localhost ~]# rdate -p time.bora.net  => NTP 서버의 시간 확인 명령어.
+ rdate: [time.bora.net]  Thu Jul 25 12:50:06 2019
+
+[root@localhost ~]# rdate -s time.bora.net  => NTP 서버로부터 시간을 동기화 받는 명령어. 
+[root@localhost ~]# date
+ 2019. 07. 25. (목) 12:50:30 KST
+
+----------------------------------------------------------------------------------
+[find] : 파일 및 디렉터리 검색 명령어.
+ => find <검색 경로> -name <이름> -type <형식>
+ => find <검색 경로> -name <이름> -exec [명령어] {} \;
+
+<Ex 1>
+ # find / -name itbank
+  /var/spool/mail/itbank
+  /home/itbank
+
+ # find / -name itbank -type d
+  /home/itbank
+ # find / -name itbank -type f
+  /var/spool/mail/itbank
+
+ # find ./ /etc/ -name ini* -exec more {} \;
+
+<Ex>
+/down/ 디렉터리를 생성하시오.
+/down/ 디렉터리에 test1, test2 파일을 생성하시오.
+/down/ 디렉터리에 있는 test1, test2 파일을 각각 test3, test4 파일로 /tmp/ 디렉터리에 복사하시오.
+/down/ 디렉터리에 test 디렉터리를 생성하시오.
+/down/test 디렉터리를 /tmp/ 디렉터리로 이동하시오.
+
+<풀이>
+# mkdir /down/
+# touch /down/test1 /down/test2
+# cp /down/test1 /tmp/test3
+# cp /down/test2 /tmp/test4
+# mkdir /down/test/
+# mv /down/test/ /tmp/
+# ls -l /down/ 
+# ls -l /tmp/ | grep test
+rm
+- Find 명령어를 통해 파일명 앞부분에 "test"문자열이 섞인 파일을 검색 후 삭제되도록 하시오
+  (/tmp/ 디렉터리와 /down/ 디렉터리로만 부분검색을 하고 명령어 한 줄로)
+
+# find /tmp/ /down/ -name "test*" -exec rm -rf {} \;
+# ls -l /down/ 
+# ls -l /tmp/ | grep test
+
+
+-----------------------------------------------------------------------------------------------
+##시스템 종료 및 재부팅 ##
+
+1)시스템 종료:shutdown -P now(= shutdown -h now)  (대소문자 정확하게 입력해야
+               halt -P(= halt)
+               poweroff
+               init 0
+        ex)    shutdown -P + 10(10분뒤에 서버끈다)--서버컴퓨터에서 해야함
+               shutdown -c(서버안꺼),서버끄는명렁 취소하는명렁어
+	       shutdown -r 22:00 (오후 10시에 끌게,예약 종료)--서버컴퓨터에서 해야함
+               shutdown -k +15(15분뒤에 서버끌게(훼이크))--서버컴퓨터에서 해야함
+
+2)시스템 재부팅: shutdown -r now
+                 reboot 
+                 init 6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

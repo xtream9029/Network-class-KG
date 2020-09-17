@@ -1,0 +1,185 @@
+## Permission(허가권) ##
+
+[root@localhost ~]# ls -ld /bin/
+ dr-xr-xr-x. 2 root root 53248  7월 15 14:25 /bin/
+
+[root@localhost ~]# ls -l /bin/ls
+ -rwxr-xr-x. 1 root root 117680 10월 31  2018 /bin/ls
+  ---------    ---------
+    허가권         소유권
+	
+	4   2   1	4   2   1	4   2   1
+	r   w   x	r   w   x	r   w   x
+	---------	---------	---------
+          Owner           Group           other
+         (소유자)          (그룹)         (그 외 사용자)
+
+- Read : 읽기(r) / Write : 쓰기(w) / eXecute : 실행(x)
+
+-----------------------------------------------------------------------------------
+[ chmod ] : 허가권 변경 명령어
+ => 허가권 변경은 root 계정과 해당 파일의 소유자(Owner)만 가능하다.
+ => # chmod [permission] [file/directory]
+        -> Symbolic Method
+        -> Numeric Method
+
+<1. Symbolic Method>
+	- (+) : 허가권 추가
+        - (-) : 허가권 제거
+	------------------
+        - (u) : user(owner, 소유자)
+        - (g) : group
+	- (o) : other(나머지 사용자)
+
+	ex> chmod u+x,g+wx,o+x <file 명>
+            chmod u-w,g-x,o+w-x <file 명>
+
+<2. Numeric Method>
+
+ 	ex> chmod 644 <file 명>
+            chmod 752 <file 명>
+	   
+Ex 1> testfile을 생성 후 chmod로 허가권 변경을 테스트해보자.
+ 
+ # cd /home/itbank/
+ # touch testfile
+ # ls -l testfile
+ # chmod 000 testfile
+
+   1. numeric method 방법으로 변경  : rw- -w- -wx
+   2. symbolic method 방법으로 변경 : -wx r-x rw-
+   3. numeric method 방법으로 변경  : r-x -w- rw-
+  
+<풀이>
+ # chmod 623 ./testfile
+ # chmod u-r+x,g+rx-w,o+r-x ./testfile
+ # chmod 526 ./testfile
+
+-------------------------------------------------------------------------------------
+Ex 2> 디렉터리에 대한 허가권 설정
+
+ # mkdir -p /data/ptest/; cd /data/ptest/
+ # touch ptestfile
+ # echo "permission test file" > ptestfile
+ # ls -l; cat ptestfile
+
+1) [/data/ptest/] 디렉터리에서 other에 대해 실행(x) 권한 제거.
+ # chmod o-x /data/ptest/
+ # su - itbank1
+ $ cd /data/ptest/           => other에게 실행(x) 권한이 없기 때문에 cd 명령어를 사용할 수 없다!
+ $ cat /data/ptest/ptestfile => 내부 파일에 허가권이 있어도 디렉터리 자체에 실행(x) 권한이 없는 경우
+                                내부 파일을 사용할 수 없다.
+
+2) [/data/ptest/] 디렉터리에서 other에 대해 실행(x) 권한만 부여.
+ $ exit
+ # chmod 751 /data/ptest/
+ # su - itbank1
+ $ cd /data/ptest/           => 디렉터리에 실행(x) 권한이 있으면 cd로 이동이 가능.
+ $ cat /data/ptest/ptestfile => 디렉터리에 들어올 수 있는 실행(x) 권한이 있으면 내부파일 사용이 가능.
+ $ ls -l /data/ptest/        => 디렉터리에 읽기(r) 권한이 없으면 목록보기(ls)가 불가능.
+
+3) [/data/ptest/] 디렉터리에서 other에 대해 읽기(r), 실행(x) 권한 부여.
+ $ exit
+ # chmod o+r /data/ptest/
+ # su - itbank1
+ $ cd /data/ptest/
+ $ cat /data/ptest/ptestfile
+ $ ls -l /data/ptest/
+
+4) [/data/ptest/ptestfile] 내용 수정하기
+ $ echo "test2" >> ptestfile       => 파일에 other에 대한 쓰기(w) 권한이 없기 때문에 실패.
+ $ exit
+ # chmod o+w /data/ptest/ptestfile
+ # su - itbank1
+ $ cd /data/ptest/
+ $ echo "test2" >> ptestfile
+ $ cat ptestfile
+
+5) [/data/ptest/ptestfile] 파일 삭제
+ $ rm /data/ptest/ptestfile        => 파일 삭제 실패.
+ $ exit
+ # chmod o+x /data/ptest/ptestfile => 파일에 other에 대한 모든 권한(rwx)을 부여.
+
+ # su - itbank1
+ $ cd /data/ptest/
+ $ rm ptestfile                     => 모든 권한을 부여했지만 파일 삭제는 실패.
+
+ $ exit
+ # chmod 757 /data/ptest/           => 디렉터리에 쓰기(w) 권한 부여
+ # chmod 644 /data/ptest/ptestfile  => 파일에 쓰기(w), 실행(x) 권한 삭제.
+
+ # su - itbank1
+ $ cd /data/ptest/
+ $ rm ptestfile 
+
+6) 디렉터리에 읽기(r) 권한이 없는 경우 파일 생성(ex.touch)이 가능한가?
+ $ exit
+ # chmod o-r /data/ptest/    => 디렉터리에서 읽기(r) 권한 제거.
+ $ su - itbank1
+ $ cd /data/ptest/
+ $ touch testfile2; mkdir testdir => 디렉터리에 쓰기(w) 권한이 있는 경우 파일/디렉터리 생성이 가능.
+                                     (읽기(r) 권한은 파일 생성에 관여하지 않는다.)
+ 
+ $ ls -l /data/ptest/             => 디렉터리 읽기(r) 권한이 없어서 실패.
+  ls: cannot open directory /data/ptest/: 허가 거부
+
+ $ ls -l /data/ptest/testfile2    => 확인 가능.
+ $ ls -ld /data/ptest/testdir     => 확인 가능.
+
+7) 디렉터리에 읽기(r) 권한이 없는 경우 삭제(rm), 파일이동(mv)이 가능한가?
+ $ mv ./testfile2 ./testfile22    => 성공
+ $ ls -l /data/ptest/testfile22 
+ $ ls -l /data/ptest/testfile2
+
+ $ rm -f ./testfile22
+ $ ls -l ./testfile22
+  => 디렉터리에 쓰기(w) 권한만 있으면 파일이동, 삭제, 생성 등이 가능하다. 
+     읽기(r) 권한은 이 부분에 대해서 아무런 관여를 하지 않는다.
+
+<결론 1> : Direcotry 허가권에서 '읽기(r)'는 디렉터리 목록보기(ls)와 복사(cp), '쓰기(w)'는 이동, 삭제, 
+          생성(mv, rm, touch, mkdir..), '실행(x)'은 디렉터리 접근(cd)이 가능한 권한이다.
+           => 디렉터리 접근(cd)이 가능해야 내부 파일을 사용할 수 있다.(파일 권한에 따라서 사용)
+
+<결론 2> : File 허가권에서 '읽기(r)' 문서 내용 보기, '쓰기(w)'는 문서 내용 수정, '실행(x)'은 실행파일
+          구동. 실행 파일이 아닌 텍스트 파일에는 '실행(x)' 권한이 없다.
+
+-----------------------------------------------------------------------------------------
+** CentOS_A 웹 서비스 구성 **
+
+- 공유폴더의 [HTTP] 폴더 안에 있는 2개의 파일을 FTP를 사용하여 /home/itbank/로 업로드 후 작업.
+
+[root@localhost ~]# rpm -qa httpd
+httpd-2.4.6-88.el7.centos.x86_64
+
+[root@localhost ~]# systemctl status httpd
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+   Active: inactive (dead)
+     Docs: man:httpd(8)
+           man:apachectl(8)
+
+[root@localhost ~]# systemctl start httpd
+[root@localhost ~]# systemctl enable httpd
+
+[root@localhost ~]# firewall-cmd --zone=public --list-all
+[root@localhost ~]# firewall-cmd --permanent --add-service=http
+[root@localhost ~]# firewall-cmd --reload
+
+[root@localhost ~]# cp /home/itbank/index.html /home/itbank/kg* /var/www/html/
+[root@localhost ~]# ls -l /var/www/html/
+
+[root@localhost ~]# mkdir /var/www/html/image/
+[root@localhost ~]# mv /var/www/html/kg* /var/www/html/image/
+[root@localhost ~]# ls -l /var/www/html/ /var/www/html/image/
+
+==============================================================================================
+
+
+
+
+
+
+
+
+
+
